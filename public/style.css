@@ -1,0 +1,44 @@
+:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --pi-purple: #7c3aed;
+    --bg-color: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { background: var(--bg-color); color: var(--text-main); padding-bottom: 70px; }
+header { background: linear-gradient(135deg, var(--pi-purple), var(--primary)); color: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.5px; }
+.role-badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+
+.container { max-width: 600px; margin: 0 auto; padding: 16px; }
+.view-section { display: none; }
+.view-section.active { display: block; }
+
+.card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.hero-banner { background: white; border-left: 4px solid var(--pi-purple); padding: 16px; border-radius: 8px; margin-bottom: 16px; }
+.hero-banner h2 { font-size: 1.1rem; margin-bottom: 4px; color: var(--text-main); }
+.hero-banner p { font-size: 0.85rem; color: var(--text-muted); }
+
+.product-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+.tag { display: inline-block; background: #ede9fe; color: var(--pi-purple); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-bottom: 8px; }
+.price-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin: 8px 0; color: var(--text-muted); }
+
+button { background: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; width: 100%; transition: background 0.2s; }
+button:hover { background: var(--primary-dark); }
+button.secondary { background: #e2e8f0; color: var(--text-main); margin-top: 6px; }
+button.secondary:hover { background: #cbd5e1; }
+select, input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem; }
+
+.ai-box { background: #fdf4ff; border: 1px solid #f5d0fe; border-radius: 10px; padding: 14px; margin-top: 10px; }
+.disclaimer { font-size: 0.7rem; color: #a21caf; margin-top: 8px; font-style: italic; border-top: 1px dashed #f0abfc; padding-top: 6px; }
+.pi-badge { background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; display: inline-block; margin-bottom: 8px; }
+
+nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
+.nav-item { text-align: center; font-size: 0.7rem; color: var(--text-muted); cursor: pointer; font-weight: 600; flex: 1; }
+.nav-item.active { color: var(--pi-purple); }
+.nav-item span { display: block; font-size: 1.2rem; margin-bottom: 2px; }
+
