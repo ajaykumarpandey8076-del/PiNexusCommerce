@@ -1,6 +1,34 @@
 const sampleProducts = [
-    { id: 1, name: 'Smart LED Bulb', category: 'Electronics', sourceMarket: 'India', sourcePrice: 120, currency: '₹', destinationMarket: 'USA', estimatedSellingPrice: '₹250–₹320', description: 'Energy-efficient smart lighting solution.', verified: false, sample: true, supplierId: 'SUP-01' },
-    { id: 2, name: 'Cotton Tote Bag', category: 'Clothing', sourceMarket: 'India', sourcePrice: 80, currency: '₹', destinationMarket: 'UAE', estimatedSellingPrice: '₹160–₹220', description: 'Eco-friendly organic cotton carry bag.', verified: false, sample: true, supplierId: 'SUP-02' }
+    { 
+        id: 1, 
+        name: 'Smart LED Bulb', 
+        category: 'Electronics', 
+        sourceMarket: 'India', 
+        sourcePrice: 120, 
+        currency: '₹', 
+        destinationMarket: 'USA', 
+        description: 'Energy-efficient smart lighting solution for global markets.', 
+        verified: false, 
+        sample: true, 
+        supplierId: 'SUP-01',
+        additionalCost: 30,
+        sellingPrice: 280
+    },
+    { 
+        id: 2, 
+        name: 'Cotton Tote Bag', 
+        category: 'Clothing', 
+        sourceMarket: 'India', 
+        sourcePrice: 80, 
+        currency: '₹', 
+        destinationMarket: 'UAE', 
+        description: 'Eco-friendly organic cotton carry bag.', 
+        verified: false, 
+        sample: true, 
+        supplierId: 'SUP-02',
+        additionalCost: 20,
+        sellingPrice: 180
+    }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -23,10 +51,12 @@ function loadOpportunities(products) {
         <div class="card">
             <span class="tag">Sample Opportunity</span>
             <div class="product-title">${p.name}</div>
-            <div class="price-row"><span>Source: <b>${p.sourceMarket}</b></span><span>Source Price: <b style="color:var(--pi-purple);">${p.currency}${p.sourcePrice}</b></span></div>
-            <div class="price-row"><span>Destination: <b>${p.destinationMarket}</b></span><span>Est. Selling: <b>${p.estimatedSellingPrice}</b></span></div>
-            <button style="margin-top: 10px;" onclick="triggerAIConsent('${p.name}', ${p.sourcePrice})">Ask AI Advisor</button>
-            <button class="secondary" onclick="alert('Pi Network Integration — Coming in the next phase. Payment in Pi.')">🔒 Proceed with Payment in Pi</button>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">${p.description}</div>
+            <div class="price-row"><span>Source Market: <b>${p.sourceMarket}</b></span><span>Source Price: <b style="color:var(--pi-purple);">${p.currency}${p.sourcePrice}</b></span></div>
+            <div class="price-row"><span>Destination Target: <b>${p.destinationMarket}</b></span><span>Category: <b>${p.category}</b></span></div>
+            
+            <button style="margin-top: 10px;" onclick="triggerAIConsent(${p.id})">Ask AI Advisor</button>
+            <button class="secondary" onclick="prepareOrder(${p.id})">🔒 Proceed to Order / Pi Payment</button>
         </div>
     `).join('');
 
@@ -51,41 +81,47 @@ function handleSearch() {
     }
 }
 
-function triggerAIConsent(productName, sourcePrice) {
+function triggerAIConsent(productId) {
+    const product = sampleProducts.find(p => p.id === productId);
     switchTab('advisor', document.querySelectorAll('.nav-item')[2]);
+    
     document.getElementById('aiResponseContainer').innerHTML = `
         <div class="ai-box">
-            <p style="font-weight:600; margin-bottom:8px;">Would you like me to provide a detailed analysis of this product (${productName})?</p>
-            <button onclick="showAIAnalysis(${sourcePrice})">Yes, Show Analysis</button>
+            <p style="font-weight:600; margin-bottom:8px;">Would you like me to provide a detailed analysis of this product (${product.name})?</p>
+            <button onclick="showAIAnalysis(${product.id})">Yes, Show Analysis</button>
             <button class="secondary" onclick="closeAIAnalysis()">No, Not Now</button>
         </div>
     `;
 }
 
-function showAIAnalysis(sourcePrice) {
-    const additionalCost = 30;
-    const sellingPrice = sourcePrice * 2.2;
-    const totalCost = sourcePrice + additionalCost;
-    const grossMargin = sellingPrice - totalCost;
-    const marginPercent = ((grossMargin / sellingPrice) * 100).toFixed(1);
+function showAIAnalysis(productId) {
+    const p = sampleProducts.find(item => item.id === productId);
+    const totalCost = p.sourcePrice + p.additionalCost;
+    const grossMargin = p.sellingPrice - totalCost;
+    const marginPercent = ((grossMargin / p.sellingPrice) * 100).toFixed(1);
 
     document.getElementById('aiResponseContainer').innerHTML = `
         <div class="ai-box">
             <h4 style="color:var(--pi-purple); margin-bottom:6px;">✨ AI Estimate Analysis</h4>
-            <p style="font-size:0.85rem; margin:3px 0;"><b>Source Price:</b> ₹${sourcePrice}</p>
-            <p style="font-size:0.85rem; margin:3px 0;"><b>Estimated Additional Cost:</b> ₹${additionalCost}</p>
-            <p style="font-size:0.85rem; margin:3px 0;"><b>Estimated Total Cost:</b> ₹${totalCost}</p>
-            <p style="font-size:0.85rem; margin:3px 0;"><b>Potential Selling Range:</b> ₹${Math.round(sellingPrice)} – ₹${Math.round(sellingPrice * 1.2)}</p>
-            <p style="font-size:0.85rem; margin:3px 0;"><b>Potential Gross Margin:</b> ₹${Math.round(grossMargin)} (${marginPercent}%)</p>
-            <p style="font-size:0.85rem; margin:3px 0;"><b>Market Information:</b> High demand observed in destination target region.</p>
-            <p style="font-size:0.85rem; margin:3px 0;"><b>Risk Factors:</b> Shipping delays & currency variance.</p>
+            <p style="font-size:0.85rem; margin:3px 0;"><b>Source Price:</b> ${p.currency}${p.sourcePrice}</p>
+            <p style="font-size:0.85rem; margin:3px 0;"><b>Estimated Additional Cost:</b> ${p.currency}${p.additionalCost}</p>
+            <p style="font-size:0.85rem; margin:3px 0;"><b>Estimated Total Cost:</b> ${p.currency}${totalCost}</p>
+            <p style="font-size:0.85rem; margin:3px 0;"><b>Potential Selling Price Range:</b> ${p.currency}${p.sellingPrice} – ${p.currency}${Math.round(p.sellingPrice * 1.15)}</p>
+            <p style="font-size:0.85rem; margin:3px 0;"><b>Potential Gross Margin:</b> ${p.currency}${grossMargin} (${marginPercent}%)</p>
+            <p style="font-size:0.85rem; margin:3px 0;"><b>Market Information:</b> High demand observed in ${p.destinationMarket}.</p>
+            <p style="font-size:0.85rem; margin:3px 0;"><b>Risk Factors:</b> Shipping customs clearance & currency fluctuation variance.</p>
+            <p style="font-size:0.85rem; margin:3px 0;"><b>Alternative Options:</b> Alternate regional suppliers available on verification.</p>
             <div class="disclaimer">This information is based on available data and estimates. Actual prices, costs and market conditions may change. The final decision is yours.</div>
         </div>
     `;
 }
 
 function closeAIAnalysis() {
-    document.getElementById('aiResponseContainer').innerHTML = `<p style="font-size:0.85rem; color:var(--text-muted); margin-top:10px;">Analysis closed.</p>`;
+    document.getElementById('aiResponseContainer').innerHTML = `<p style="font-size:0.85rem; color:var(--text-muted); margin-top:10px;">Analysis closed. You may return to Home or Discover.</p>`;
+}
+
+function prepareOrder(productId) {
+    alert("Pi Payment — Coming in the next integration phase. No transactions completed yet.");
 }
 
 function calculateMargin() {
