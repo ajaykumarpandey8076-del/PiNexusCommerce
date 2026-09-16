@@ -3,106 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PiNexusCommerce - Global Commerce Network</title>
-    <style>
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --pi-purple: #7c3aed;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background: var(--bg-color); color: var(--text-main); padding-bottom: 70px; }
-        header { background: linear-gradient(135deg, var(--pi-purple), var(--primary)); color: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.5px; }
-        .role-badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
-        
-        .container { max-width: 600px; margin: 0 auto; padding: 16px; }
-        .view-section { display: none; }
-        .view-section.active { display: block; }
-
-        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .hero-banner { background: white; border-left: 4px solid var(--pi-purple); padding: 16px; border-radius: 8px; margin-bottom: 16px; }
-        .hero-banner h2 { font-size: 1.1rem; margin-bottom: 4px; color: var(--text-main); }
-        .hero-banner p { font-size: 0.85rem; color: var(--text-muted); }
-
-        .product-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
-        .tag { display: inline-block; background: #ede9fe; color: var(--pi-purple); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-bottom: 8px; }
-        .price-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin: 8px 0; color: var(--text-muted); }
-
-        button { background: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; width: 100%; transition: background 0.2s; }
-        button:hover { background: var(--primary-dark); }
-        button.secondary { background: #e2e8f0; color: var(--text-main); margin-top: 6px; }
-        button.secondary:hover { background: #cbd5e1; }
-        select, input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem; }
-
-        .ai-box { background: #fdf4ff; border: 1px solid #f5d0fe; border-radius: 10px; padding: 14px; margin-top: 10px; }
-        .disclaimer { font-size: 0.7rem; color: #a21caf; margin-top: 8px; font-style: italic; border-top: 1px dashed #f0abfc; padding-top: 6px; }
-
-        nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
-        .nav-item { text-align: center; font-size: 0.7rem; color: var(--text-muted); cursor: pointer; font-weight: 600; flex: 1; }
-        .nav-item.active { color: var(--pi-purple); }
-        .nav-item span { display: block; font-size: 1.2rem; margin-bottom: 2px; }
-    </style>
+    <title>PiNexusCommerce - Global Commerce Powered by Pi</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <header>
         <h1>PiNexusCommerce</h1>
-        <div id="activeRoleDisplay" class="role-badge">Buyer / Reseller</div>
+        <div id="activeRoleDisplay" class="role-badge">Buyer</div>
     </header>
+
     <div class="container">
+        <!-- HOME SECTION -->
         <div id="home-view" class="view-section active">
             <div class="hero-banner">
-                <h2>Today's Global Commerce Opportunities</h2>
-                <p>Discover wholesale sources and high-potential resale markets tailored to your interests.</p>
+                <span class="pi-badge">⚡ Powered by Pi Network</span>
+                <h2>Global Commerce Opportunities</h2>
+                <p>Discover products, markets and business opportunities from around the world.</p>
             </div>
+
+            <!-- Search Area -->
+            <div class="card">
+                <input type="text" id="searchInput" placeholder="Search products, markets or suppliers..." oninput="handleSearch()">
+                <button onclick="handleSearch()">Search Opportunities</button>
+            </div>
+
+            <!-- Today's Opportunities Section -->
+            <h3 style="margin-bottom: 10px; font-size: 1rem;">Today's Opportunities</h3>
             <div id="feed-container"></div>
         </div>
+
+        <!-- DISCOVER SECTION -->
         <div id="discover-view" class="view-section">
             <h3 style="margin-bottom: 12px;">Global Sourcing & Markets</h3>
-            <select id="categoryFilter" onchange="loadOpportunities()">
-                <option value="All">All Categories</option>
-                <option value="Electronics">Electronics</option>
-                <option value="Clothing">Clothing</option>
-                <option value="Home">Home & Living</option>
-            </select>
             <div id="discovery-container"></div>
         </div>
+
+        <!-- AI ADVISOR SECTION -->
         <div id="advisor-view" class="view-section">
             <div class="card">
-                <h3>🤖 AI Business Advisor</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 6px 0 12px 0;">Select a product opportunity to run an AI deal scan or ask custom questions.</p>
-                <select id="aiProductSelect"></select>
-                <button onclick="requestAIAnalysis(true)">Ask AI Advisor for Analysis</button>
-                <div id="aiResponseContainer"></div>
+                <h3>AI Business Advisor</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 6px 0 12px 0;">Need help understanding a product or business opportunity?</p>
+                <div id="aiResponseContainer" style="margin-top: 12px;">
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Select "Ask AI Advisor" from any product card to start a secure evaluation flow.</p>
+                </div>
+            </div>
+
+            <!-- Margin Calculator Component -->
+            <div class="card">
+                <h3>Margin Calculator</h3>
+                <p style="font-size: 0.80rem; color: var(--text-muted); margin-bottom: 8px;">Calculate financial projections (Not a profit guarantee).</p>
+                <input type="number" id="calcSource" placeholder="Source Price (₹)" oninput="calculateMargin()">
+                <input type="number" id="calcAdd" placeholder="Additional Cost (₹)" oninput="calculateMargin()">
+                <input type="number" id="calcSell" placeholder="Selling Price (₹)" oninput="calculateMargin()">
+                <div id="calcResult" style="font-size: 0.85rem; margin-top: 8px; font-weight: 600; color: var(--text-main);"></div>
             </div>
         </div>
+
+        <!-- ORDERS SECTION -->
         <div id="orders-view" class="view-section">
-            <h3 style="margin-bottom: 12px;">Transaction & Order Tracking</h3>
-            <div class="card" id="ordersList">
-                <p style="font-size: 0.85rem; color: var(--text-muted);">No active transactions. Tap 'Proceed to Order' on any opportunity.</p>
+            <div class="card">
+                <h3>Orders & Transactions</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Pi Payment — Coming in the next integration phase. No transactions completed yet.</p>
             </div>
         </div>
+
+        <!-- PROFILE SECTION -->
         <div id="profile-view" class="view-section">
             <div class="card">
-                <h3>User & Role Management</h3>
-                <select id="roleSelector" onchange="switchRole(this.value)">
-                    <option value="Buyer / Reseller">Buyer / Reseller</option>
-                    <option value="Wholesale Supplier">Wholesale Supplier</option>
-                    <option value="Fulfilment Partner">Fulfilment Partner</option>
-                    <option value="Admin">Admin</option>
+                <h3>User Role Selection</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">I am...</p>
+                <select id="roleSelectDropdown" onchange="selectRole(this.value)">
+                    <option value="Buyer">Buyer</option>
+                    <option value="Seller">Seller</option>
+                    <option value="Supplier">Supplier</option>
+                    <option value="Reseller">Reseller</option>
                 </select>
-            </div>
-            <div class="card" id="adminAnalyticsCard" style="display: none;">
-                <h3>📊 Admin Network Analytics</h3>
-                <div id="adminStats" style="font-size: 0.85rem; margin-top: 8px; line-height: 1.5;">Loading analytics...</div>
+                <p id="roleDescriptionText" style="font-size: 0.85rem; color: var(--pi-purple); margin-top: 8px; font-weight: 600;"></p>
             </div>
         </div>
     </div>
+
+    <!-- BOTTOM NAVIGATION -->
     <nav>
         <div class="nav-item active" onclick="switchTab('home', this)"><span>🏠</span>Home</div>
         <div class="nav-item" onclick="switchTab('discover', this)"><span>🌍</span>Discover</div>
@@ -110,113 +92,7 @@
         <div class="nav-item" onclick="switchTab('orders', this)"><span>📦</span>Orders</div>
         <div class="nav-item" onclick="switchTab('profile', this)"><span>👤</span>Profile</div>
     </nav>
-    <script>
-        let currentOpportunities = [];
-        function switchTab(tabName, element) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`${tabName}-view`).classList.add('active');
-            element.classList.add('active');
-            if(tabName === 'profile') loadAdminStats();
-        }
-        async function loadOpportunities() {
-            const cat = document.getElementById('categoryFilter')?.value || 'All';
-            const res = await fetch(`/api/opportunities?category=${cat}`);
-            const data = await res.json();
-            currentOpportunities = data.opportunities;
-            const feedHTML = currentOpportunities.map(item => `
-                <div class="card">
-                    <span class="tag">${item.category}</span>
-                    <div class="product-title">${item.title}</div>
-                    <div class="price-row"><span>Source: <b>${item.sourceCountry}</b></span><span>Price: <b style="color:var(--pi-purple);">$${item.sourcePrice.toFixed(2)}</b></span></div>
-                    <div class="price-row"><span>Destination: <b>${item.destination}</b></span><span>Est. Landed: <b>$${item.estimatedTotalCost}</b></span></div>
-                    <div class="price-row"><span>Resale: <b>$${item.minSell.toFixed(2)} - $${item.maxSell.toFixed(2)}</b></span><span>Margin: <b style="color: #16a34a;">${item.estimatedGrossMarginPercent}</b></span></div>
-                    <button style="margin-top: 10px;" onclick="triggerAIConsent(${item.id})">Ask AI Advisor / Analyze Deal</button>
-                    <button class="secondary" onclick="startOrder(${item.id}, ${item.minSell})">Proceed to Order / Pi Payment</button>
-                </div>
-            `).join('');
-            document.getElementById('feed-container').innerHTML = feedHTML;
-            document.getElementById('discovery-container').innerHTML = feedHTML;
-            document.getElementById('aiProductSelect').innerHTML = currentOpportunities.map(item => `<option value="${item.id}">${item.title} ($${item.sourcePrice})</option>`).join('');
-        }
-        function triggerAIConsent(productId) {
-            switchTab('advisor', document.querySelectorAll('.nav-item')[2]);
-            document.getElementById('aiProductSelect').value = productId;
-            document.getElementById('aiResponseContainer').innerHTML = `
-                <div class="ai-box">
-                    <p style="font-weight:600; margin-bottom:8px;">Would you like me to provide a detailed analysis of this product?</p>
-                    <button onclick="requestAIAnalysis(true, ${productId})">Yes, Analyze Deal</button>
-                    <button class="secondary" onclick="requestAIAnalysis(false)">No / Cancel</button>
-                </div>
-            `;
-        }
-        async function requestAIAnalysis(agreed, overrideId) {
-            const productId = overrideId || document.getElementById('aiProductSelect').value;
-            const role = document.getElementById('activeRoleDisplay').innerText;
-            const res = await fetch('/api/ai/analyze', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId, userConsented: agreed, userRole: role })
-            });
-            const result = await res.json();
-            if (!agreed || result.status === 'paused') {
-                document.getElementById('aiResponseContainer').innerHTML = `<p style="font-size:0.85rem; color:var(--text-muted); margin-top:10px;">Analysis declined.</p>`;
-                return;
-            }
-            const d = result.data;
-            document.getElementById('aiResponseContainer').innerHTML = `
-                <div class="ai-box">
-                    <h4 style="color:var(--pi-purple); margin-bottom:6px;">✨ AI Deal Scan Results</h4>
-                    <p style="font-size:0.85rem; margin:3px 0;"><b>Product:</b> ${d.productName}</p>
-                    <p style="font-size:0.85rem; margin:3px 0;"><b>Source & Price:</b> ${d.source}</p>
-                    <p style="font-size:0.85rem; margin:3px 0;"><b>Destination:</b> ${d.destinationMarket}</p>
-                    <p style="font-size:0.85rem; margin:3px 0;"><b>Est. Cost:</b> $${d.estimatedTotalCost}</p>
-                    <p style="font-size:0.85rem; margin:3px 0;"><b>Resale Range:</b> ${d.potentialSellingRange}</p>
-                    <p style="font-size:0.85rem; margin:3px 0;"><b>Margin:</b> ${d.potentialGrossMargin}</p>
-                    <p style="font-size:0.85rem; margin:3px 0;"><b>Signals:</b> ${d.marketSignals}</p>
-                    <p style="font-size:0.85rem; margin:3px 0;"><b>Risks:</b> ${d.riskFactors}</p>
-                    <div class="disclaimer">${result.disclaimer}</div>
-                </div>
-            `;
-        }
-        async function startOrder(productId, suggestedPrice) {
-            if(!confirm(`Proceeding with order. Confirm transaction simulation via Pi Network?`)) return;
-            const res = await fetch('/api/orders/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId, agreedTotal: suggestedPrice, paymentMethod: 'Pi Network Wallet SDK' })
-            });
-            const data = await res.json();
-            alert(`Order Created!\nOrder ID: ${data.order.orderId}\nStatus: ${data.order.status}`);
-            switchTab('orders', document.querySelectorAll('.nav-item')[3]);
-            document.getElementById('ordersList').innerHTML = `
-                <div style="border-bottom: 1px solid var(--border); padding-bottom: 8px;">
-                    <p><b>Order ID:</b> ${data.order.orderId}</p>
-                    <p><b>Product:</b> ${data.order.productTitle}</p>
-                    <p><b>Total:</b> $${data.order.totalAmount} (Fee: $${data.order.platformFee})</p>
-                    <p><b>Status:</b> <span style="color:var(--pi-purple); font-weight:600;">${data.order.status}</span></p>
-                </div>
-            `;
-        }
-        function switchRole(roleName) {
-            document.getElementById('activeRoleDisplay').innerText = roleName;
-            document.getElementById('adminAnalyticsCard').style.display = roleName === 'Admin' ? 'block' : 'none';
-        }
-        async function loadAdminStats() {
-            const res = await fetch('/api/admin/metrics');
-            const stats = await res.json();
-            document.getElementById('adminStats').innerHTML = `
-                • Daily Active Users: <b>${stats.dailyActiveUsers}</b><br>
-                • Monthly Active Users: <b>${stats.monthlyActiveUsers}</b><br>
-                • Total Products: <b>${stats.totalProducts}</b><br>
-                • Total Orders: <b>${stats.totalOrders}</b><br>
-                • Volume: <b>$${stats.transactionVolumeUSD}</b><br>
-                • Revenue (Fees): <b>$${stats.platformRevenueUSD}</b><br>
-                • AI Queries: <b>${stats.aiAdvisorQueries}</b>
-            `;
-        }
-        window.onload = loadOpportunities;
-    </script>
+
+    <script src="app.js"></script>
 </body>
 </html>
-
