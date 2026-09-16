@@ -1,0 +1,13 @@
+{
+  "name": "pi-nexus-commerce",
+  "version": "1.0.0",
+  "description": "A modern global commerce and wholesale sourcing network designed for the Pi Network ecosystem.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
+
