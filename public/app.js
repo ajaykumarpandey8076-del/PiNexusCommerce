@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Final Product Rendering Fix
+// PiNexusCommerce - Smart Commerce Matching + Voice/Text Context Engine
 // ==========================================
 
 const sampleProducts = [
@@ -51,19 +51,90 @@ const sampleProducts = [
   }
 ];
 
+// --- Persistent Conversation State & Request Context ---
+window.commerceContext = window.commerceContext || {
+  product: null,
+  category: null,
+  quantity: null,
+  sourceMarket: null,
+  destinationMarket: null,
+  budget: null,
+  purpose: 'Reselling',
+  intent: 'OPPORTUNITY_DISCOVERY'
+};
+
+window.chatHistory = window.chatHistory || [];
 window.activeAiProduct = window.activeAiProduct || null;
 
-// --- Load Opportunities with Auto-Container Fallback ---
+// --- Intent Parser & Requirement Extractor ---
+function parseAndExtractRequirements(text) {
+  const lower = text.toLowerCase();
+  
+  // Extract Product / Category
+  if (lower.includes('bulb') || lower.includes('led')) {
+    window.commerceContext.product = 'Smart LED Bulb';
+    window.commerceContext.category = 'Electronics';
+  } else if (lower.includes('bag') || lower.includes('cotton') || lower.includes('tote')) {
+    window.commerceContext.product = 'Cotton Tote Bag';
+    window.commerceContext.category = 'Clothing';
+  }
+
+  // Extract Quantity (e.g., "500 pieces" or "1000")
+  const qtyMatch = text.match(/\b(\d+)\s*(pieces|units|pcs|bulb|bag)?/i);
+  if (qtyMatch && qtyMatch[1]) {
+    window.commerceContext.quantity = parseInt(qtyMatch[1], 10);
+  }
+
+  // Extract Source Market
+  if (lower.includes('from india') || lower.includes('source india')) {
+    window.commerceContext.sourceMarket = 'India';
+  }
+
+  // Extract Destination Market
+  if (lower.includes('usa') || lower.includes('america') || lower.includes('sell in usa')) {
+    window.commerceContext.destinationMarket = 'USA';
+  } else if (lower.includes('uae') || lower.includes('dubai') || lower.includes('sell in uae')) {
+    window.commerceContext.destinationMarket = 'UAE';
+  }
+
+  // Extract Intent
+  if (lower.includes('manufacture') || lower.includes('i sell') || lower.includes('supplier')) {
+    window.commerceContext.intent = 'SELL';
+  } else if (lower.includes('need') || lower.includes('buy') || lower.includes('source')) {
+    window.commerceContext.intent = 'BUY';
+  }
+}
+
+// --- Smart Commerce Matching Engine ---
+function findSmartMatches() {
+  return sampleProducts.map(product => {
+    let score = 0;
+    let matchType = 'Possible Match';
+
+    if (window.commerceContext.product && product.name.toLowerCase().includes(window.commerceContext.product.toLowerCase())) {
+      score += 40;
+    }
+    if (window.commerceContext.sourceMarket && product.sourceMarket.toLowerCase() === window.commerceContext.sourceMarket.toLowerCase()) {
+      score += 30;
+    }
+    if (window.commerceContext.destinationMarket && product.destinationMarket.toLowerCase() === window.commerceContext.destinationMarket.toLowerCase()) {
+      score += 30;
+    }
+
+    if (score >= 70) {
+      matchType = 'High Relevance';
+    } else if (score >= 40) {
+      matchType = 'Good Match';
+    }
+
+    return { product, score, matchType };
+  }).sort((a, b) => b.score - a.score);
+}
+
+// --- Render Opportunities & Assistant UI ---
 function loadOpportunities(productsToDisplay = sampleProducts) {
   let container = document.getElementById('opportunities-container');
-  if (!container) {
-    // Fallback: create container dynamically if missing in index.html
-    container = document.createElement('div');
-    container.id = 'opportunities-container';
-    container.className = 'p-4 max-w-md mx-auto';
-    const mainArea = document.querySelector('main') || document.body;
-    mainArea.appendChild(container);
-  }
+  if (!container) return;
 
   container.innerHTML = productsToDisplay.map(p => `
     <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4 transition-all hover:shadow-md">
@@ -104,15 +175,148 @@ function loadOpportunities(productsToDisplay = sampleProducts) {
   `).join('');
 }
 
-function searchOpportunities() {
-  const query = document.getElementById('searchInput')?.value.toLowerCase() || '';
-  const filtered = sampleProducts.filter(p => 
-    p.name.toLowerCase().includes(query) || 
-    p.category.toLowerCase().includes(query) ||
-    p.sourceMarket.toLowerCase().includes(query) ||
-    p.destinationMarket.toLowerCase().includes(query)
-  );
-  loadOpportunities(filtered);
+// --- Voice + Text Commerce Assistant Widget Injection ---
+function renderCommerceAssistant() {
+  let assistantContainer = document.getElementById('commerce-assistant-container');
+  if (!assistantContainer) {
+    assistantContainer = document.createElement('div');
+    assistantContainer.id = 'commerce-assistant-container';
+    assistantContainer.className = 'p-4 max-w-md mx-auto my-4 bg-white border border-purple-100 rounded-2xl shadow-sm';
+    
+    const mainArea = document.querySelector('main') || document.body;
+    mainArea.insertBefore(assistantContainer, mainArea.firstChild);
+  }
+
+  assistantContainer.innerHTML = `
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+        🤖 AI Commerce Assistant & Voice Matcher
+      </h3>
+      <button onclick="resetCommerceRequest()" class="text-[11px] text-purple-600 hover:underline font-medium">
+        Start New Request
+      </button>
+    </div>
+
+    <div id="chat-messages" class="space-y-2 mb-3 max-h-48 overflow-y-auto text-xs bg-gray-50 p-3 rounded-xl border border-gray-100">
+      ${window.chatHistory.length === 0 ? '<p class="text-gray-400 italic">Type or speak your requirement (e.g. "I need 500 LED bulbs from India for USA")...</p>' : 
+        window.chatHistory.map(msg => `<div><strong>${msg.sender}:</strong>${msg.text}</div>`).join('')}
+    </div>
+
+    <div id="voice-status" class="text-[11px] text-purple-700 font-medium mb-2 hidden">🔴 Listening... Speak now.</div>
+
+    <div class="flex gap-2 items-center">
+      <input type="text" id="assistantInput" placeholder="Type what you need..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" />
+      <button onclick="handleUserSubmit()" class="bg-purple-600 text-white px-4 py-2.5 rounded-xl text-xs font-medium hover:bg-purple-700 transition">
+        Send
+      </button>
+      <button onclick="toggleVoiceRecording()" id="mic-btn" class="bg-gray-100 hover:bg-purple-100 text-gray-700 p-2.5 rounded-xl text-xs transition" title="Voice Command">
+        🎙️
+      </button>
+    </div>
+
+    <div id="smart-matches-results" class="mt-3"></div>
+  `;
+}
+
+// --- Voice Recognition Handler ---
+let recognition = null;
+function toggleVoiceRecording() {
+  const statusEl = document.getElementById('voice-status');
+  const inputEl = document.getElementById('assistantInput');
+
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('Speech recognition is not supported in your browser. Please use text input.');
+    return;
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+
+  statusEl.classList.remove('hidden');
+
+  recognition.onresult = (event) => {
+    const speechText = event.results[0][0].transcript;
+    inputEl.value = speechText;
+    statusEl.classList.add('hidden');
+  };
+
+  recognition.onerror = () => {
+    statusEl.classList.add('hidden');
+    alert('Voice recognition error. Please try typing.');
+  };
+
+  recognition.onend = () => {
+    statusEl.classList.add('hidden');
+  };
+
+  recognition.start();
+}
+
+// --- Handle User Message Submission ---
+function handleUserSubmit() {
+  const inputEl = document.getElementById('assistantInput');
+  const text = inputEl.value.trim();
+  if (!text) return;
+
+  // Add user message
+  window.chatHistory.push({ sender: 'You', text: text + ' 🎙️' });
+  inputEl.value = '';
+
+  // Extract requirements and update context
+  parseAndExtractRequirements(text);
+
+  // Generate AI Response based on context
+  let aiReply = `I understand. Requirement updated: ${window.commerceContext.product || 'Product'}, Qty: ${window.commerceContext.quantity || 'Not specified'}, Source: ${window.commerceContext.sourceMarket || 'Any'}, Destination: ${window.commerceContext.destinationMarket || 'Any'}.`;
+  window.chatHistory.push({ sender: 'AI', text: aiReply });
+
+  renderCommerceAssistant();
+  renderSmartMatches();
+}
+
+// --- Render Smart Matches ---
+function renderSmartMatches() {
+  const container = document.getElementById('smart-matches-results');
+  if (!container) return;
+
+  const matches = findSmartMatches();
+  container.innerHTML = `
+    <div class="mt-2 pt-2 border-t border-gray-200">
+      <h4 class="font-semibold text-gray-800 text-xs mb-2">🎯 Opportunities matching your request</h4>
+      <div class="space-y-1.5">
+        ${matches.map(m => `
+          <div class="bg-white p-2 rounded-lg border border-gray-100 text-[11px] flex justify-between items-center">
+            <div>
+              <span class="font-bold text-gray-800">${m.product.name}</span>
+              <span class="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded ml-1">${m.matchType}</span>
+              <div class="text-gray-500 text-[10px]">Source: ${m.product.sourceMarket} \vert{} Target:${m.product.destinationMarket}</div>
+            </div>
+            <button onclick="loadOpportunities([sampleProducts.find(p => p.id === ${m.product.id})])" class="bg-purple-600 text-white px-2.5 py-1 rounded text-[10px] font-medium">
+              View
+            </button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// --- Reset Request Context ---
+function resetCommerceRequest() {
+  window.commerceContext = {
+    product: null,
+    category: null,
+    quantity: null,
+    sourceMarket: null,
+    destinationMarket: null,
+    budget: null,
+    purpose: 'Reselling',
+    intent: 'OPPORTUNITY_DISCOVERY'
+  };
+  window.chatHistory = [];
+  renderCommerceAssistant();
+  loadOpportunities(sampleProducts);
 }
 
 // --- Product-Specific AI Advisor Flow ---
@@ -242,9 +446,21 @@ function prepareOrder(productId) {
   alert(`Initiating Pi Testnet payment flow for ${name}. Official Pi Testnet confirmation pending. Note: No real Pi transaction is complete without network confirmation.`);
 }
 
-// --- Initial Execution ---
+function searchOpportunities() {
+  const query = document.getElementById('searchInput')?.value.toLowerCase() || '';
+  const filtered = sampleProducts.filter(p => 
+    p.name.toLowerCase().includes(query) || 
+    p.category.toLowerCase().includes(query) ||
+    p.sourceMarket.toLowerCase().includes(query) ||
+    p.destinationMarket.toLowerCase().includes(query)
+  );
+  loadOpportunities(filtered);
+}
+
+// --- Initial Load Handler ---
 document.addEventListener('DOMContentLoaded', () => {
   loadSavedRole();
-  loadOpportunities(sampleProducts);
+  loadOpportunities();
+  renderCommerceAssistant();
 });
 
