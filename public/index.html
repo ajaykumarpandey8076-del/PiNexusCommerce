@@ -1,98 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PiNexusCommerce - Global Commerce Powered by Pi</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PiNexusCommerce - Global Commerce AI Assistant & Matching Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen">
 
-    <header>
-        <h1>PiNexusCommerce</h1>
-        <div id="activeRoleDisplay" class="role-badge">Buyer</div>
-    </header>
-
-    <div class="container">
-        <!-- HOME SECTION -->
-        <div id="home-view" class="view-section active">
-            <div class="hero-banner">
-                <span class="pi-badge">⚡ Powered by Pi Network</span>
-                <h2>Global Commerce Opportunities</h2>
-                <p>Discover products, markets and business opportunities from around the world.</p>
-            </div>
-
-            <!-- Search Area -->
-            <div class="card">
-                <input type="text" id="searchInput" placeholder="Search products, markets or suppliers..." oninput="handleSearch()">
-                <button onclick="handleSearch()">Search Opportunities</button>
-            </div>
-
-            <!-- Today's Opportunities Section -->
-            <h3 style="margin-bottom: 10px; font-size: 1rem;">Today's Opportunities</h3>
-            <div id="feed-container"></div>
+  <!-- Fixed Top Header -->
+  <header class="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50 px-4 py-3 shadow-sm">
+    <div class="max-w-md mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🌐</span>
+        <div>
+          <h1 class="font-bold text-sm text-gray-900 leading-tight">PiNexusCommerce</h1>
+          <p class="text-[10px] text-purple-600 font-medium">Global AI Matching Platform</p>
         </div>
-
-        <!-- DISCOVER SECTION -->
-        <div id="discover-view" class="view-section">
-            <h3 style="margin-bottom: 12px;">Global Sourcing & Markets</h3>
-            <div id="discovery-container"></div>
-        </div>
-
-        <!-- AI ADVISOR SECTION -->
-        <div id="advisor-view" class="view-section">
-            <div class="card">
-                <h3>AI Business Advisor</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 6px 0 12px 0;">Need help understanding a product or business opportunity?</p>
-                <div id="aiResponseContainer" style="margin-top: 12px;">
-                    <p style="font-size: 0.85rem; color: var(--text-muted);">Select "Ask AI Advisor" from any product card to start a secure evaluation flow.</p>
-                </div>
-            </div>
-
-            <!-- Margin Calculator Component -->
-            <div class="card">
-                <h3>Margin Calculator</h3>
-                <p style="font-size: 0.80rem; color: var(--text-muted); margin-bottom: 8px;">Calculate financial projections (Not a profit guarantee).</p>
-                <input type="number" id="calcSource" placeholder="Source Price (₹)" oninput="calculateMargin()">
-                <input type="number" id="calcAdd" placeholder="Additional Cost (₹)" oninput="calculateMargin()">
-                <input type="number" id="calcSell" placeholder="Selling Price (₹)" oninput="calculateMargin()">
-                <div id="calcResult" style="font-size: 0.85rem; margin-top: 8px; font-weight: 600; color: var(--text-main);"></div>
-            </div>
-        </div>
-
-        <!-- ORDERS SECTION -->
-        <div id="orders-view" class="view-section">
-            <div class="card">
-                <h3>Orders & Transactions</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted);">Pi Payment — Coming in the next integration phase. No transactions completed yet.</p>
-            </div>
-        </div>
-
-        <!-- PROFILE SECTION -->
-        <div id="profile-view" class="view-section">
-            <div class="card">
-                <h3>User Role Selection</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">I am...</p>
-                <select id="roleSelectDropdown" onchange="selectRole(this.value)">
-                    <option value="Buyer">Buyer</option>
-                    <option value="Seller">Seller</option>
-                    <option value="Supplier">Supplier</option>
-                    <option value="Reseller">Reseller</option>
-                </select>
-                <p id="roleDescriptionText" style="font-size: 0.85rem; color: var(--pi-purple); margin-top: 8px; font-weight: 600;"></p>
-            </div>
-        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <select id="roleSelect" onchange="selectRole(this.value)" class="text-[11px] bg-purple-50 text-purple-700 font-medium border border-purple-200 rounded-lg px-2 py-1 focus:outline-none">
+          <option value="Buyer">Role: Buyer / Sourcing</option>
+          <option value="Supplier">Role: Supplier / Wholesaler</option>
+        </select>
+      </div>
     </div>
+  </header>
 
-    <!-- BOTTOM NAVIGATION -->
-    <nav>
-        <div class="nav-item active" onclick="switchTab('home', this)"><span>🏠</span>Home</div>
-        <div class="nav-item" onclick="switchTab('discover', this)"><span>🌍</span>Discover</div>
-        <div class="nav-item" onclick="switchTab('advisor', this)"><span>🤖</span>AI Advisor</div>
-        <div class="nav-item" onclick="switchTab('orders', this)"><span>📦</span>Orders</div>
-        <div class="nav-item" onclick="switchTab('profile', this)"><span>👤</span>Profile</div>
-    </nav>
+  <!-- Main Scrollable Content Area -->
+  <main class="max-w-md mx-auto pt-4 px-4 pb-28">
+    
+    <!-- Home Tab Content -->
+    <section id="tab-home" class="space-y-4">
+      
+      <!-- Global Discovery Banner -->
+      <div class="bg-gradient-to-r from-purple-900 to-indigo-900 text-white rounded-2xl p-4 shadow-md">
+        <span class="text-[10px] bg-purple-700 text-purple-100 px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider">
+          Powered by Pi Network
+        </span>
+        <h2 class="text-base font-bold mt-2">Global Commerce Discovery & Matching</h2>
+        <p class="text-xs text-purple-200 mt-1 leading-relaxed">
+          Connect directly with verified global suppliers, compare wholesale prices, and match requirements instantly—without holding inventory.
+        </p>
+      </div>
 
-    <script src="app.js"></script>
+      <!-- AI Commerce Assistant Widget Container (Dynamically Rendered) -->
+      <div id="commerce-assistant-container"></div>
+
+      <!-- Search Opportunities Section -->
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+        <h3 class="font-bold text-gray-900 text-xs mb-2">Search Global Opportunities</h3>
+        <div class="flex gap-2">
+          <input type="text" id="searchInput" placeholder="Search product, category, market (e.g. India, USA)..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" oninput="searchOpportunities()" />
+        </div>
+      </div>
+
+      <!-- Today's Opportunities Header & Container -->
+      <div>
+        <h2 class="text-sm font-bold text-gray-900 mb-3 px-1">Today's Opportunities</h2>
+        <div id="opportunities-container" class="space-y-4"></div>
+      </div>
+
+    </section>
+
+    <!-- Discover Tab -->
+    <section id="tab-discover" class="hidden space-y-4">
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+        <h2 class="font-bold text-sm text-gray-900 mb-1">🌍 Global Market Intelligence</h2>
+        <p class="text-xs text-gray-600 mb-4">Explore cross-border trade corridors and verified wholesale markets.</p>
+        <div class="space-y-3 text-xs">
+          <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 flex justify-between items-center">
+            <div>
+              <span class="font-bold text-gray-800">India ➔ USA Corridor</span>
+              <p class="text-[11px] text-gray-500">High demand for Electronics & Sustainable Goods</p>
+            </div>
+            <span class="text-purple-600 font-semibold text-xs">Active</span>
+          </div>
+          <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 flex justify-between items-center">
+            <div>
+              <span class="font-bold text-gray-800">India ➔ UAE Corridor</span>
+              <p class="text-[11px] text-gray-500">High demand for Apparel & Eco Textiles</p>
+            </div>
+            <span class="text-purple-600 font-semibold text-xs">Active</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Advisor Tab -->
+    <section id="tab-advisor" class="hidden space-y-4">
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+        <h2 class="font-bold text-sm text-gray-900 mb-1">🤖 AI Business Advisor Hub</h2>
+        <p class="text-xs text-gray-600 mb-4">Calculate margins, evaluate cross-border shipping costs, and review risk factors.</p>
+        
+        <div class="space-y-3 bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs">
+          <h3 class="font-semibold text-gray-800">Quick Trade Margin Calculator</h3>
+          <div>
+            <label class="text-[11px] text-gray-500">Source Price (₹)</label>
+            <input type="number" id="sourcePrice" placeholder="120" class="w-full mt-1 p-2 border border-gray-200 rounded-lg text-xs" oninput="calculateMargin()" />
+          </div>
+          <div>
+            <label class="text-[11px] text-gray-500">Estimated Additional Cost / Logistics (₹)</label>
+            <input type="number" id="additionalCost" placeholder="30" class="w-full mt-1 p-2 border border-gray-200 rounded-lg text-xs" oninput="calculateMargin()" />
+          </div>
+          <div>
+            <label class="text-[11px] text-gray-500">Target Selling Price (₹)</label>
+            <input type="number" id="sellingPrice" placeholder="280" class="w-full mt-1 p-2 border border-gray-200 rounded-lg text-xs" oninput="calculateMargin()" />
+          </div>
+          <div id="calcResult" class="p-2.5 bg-purple-50 text-purple-900 font-bold rounded-lg text-center mt-2">
+            Total Cost: ₹150 | Gross Margin: ₹130 (46.4%)
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Orders Tab -->
+    <section id="tab-orders" class="hidden space-y-4">
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm text-center py-8">
+        <span class="text-2xl mb-2 block">🔒</span>
+        <h2 class="font-bold text-sm text-gray-900 mb-1">Pi Network Payment & Orders</h2>
+        <p class="text-xs text-gray-600 mb-4">Secure escrow and verified transactions via official Pi Testnet mechanisms.</p>
+        <span class="text-[11px] bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 rounded-full font-medium">
+          No active escrow orders. Select an opportunity to initiate secure connection.
+        </span>
+      </div>
+    </section>
+
+    <!-- Profile Tab -->
+    <section id="tab-profile" class="hidden space-y-4">
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+        <h2 class="font-bold text-sm text-gray-900 mb-1">👤 Global Commerce Profile</h2>
+        <p class="text-xs text-gray-600 mb-3">Manage your matching preferences and verified gateway settings.</p>
+        <div class="space-y-2 text-xs text-gray-700">
+          <div class="p-2.5 bg-gray-50 rounded-xl flex justify-between">
+            <span>Primary Currency:</span>
+            <span class="font-semibold">Pi / INR / USD</span>
+          </div>
+          <div class="p-2.5 bg-gray-50 rounded-xl flex justify-between">
+            <span>Payment Ecosystem:</span>
+            <span class="font-semibold text-purple-700">Pi Network (Primary)</span>
+          </div>
+          <div class="p-2.5 bg-gray-50 rounded-xl flex justify-between">
+            <span>Platform Mode:</span>
+            <span class="font-semibold text-purple-700">Matching & Discovery Gateway</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Fixed Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 py-2 shadow-lg">
+    <div class="max-w-md mx-auto flex justify-around items-center text-center">
+      <button onclick="switchTab('home'); setActiveNav(this);" class="nav-item flex flex-col items-center text-purple-600 active" id="nav-btn-home">
+        <span class="text-lg">🏠</span>
+        <span class="text-[10px] font-semibold mt-0.5">Home</span>
+      </button>
+      <button onclick="switchTab('discover'); setActiveNav(this);" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-discover">
+        <span class="text-lg">🌍</span>
+        <span class="text-[10px] font-semibold mt-0.5">Discover</span>
+      </button>
+      <button onclick="switchTab('advisor'); setActiveNav(this);" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-advisor">
+        <span class="text-lg">🤖</span>
+        <span class="text-[10px] font-semibold mt-0.5">AI Advisor</span>
+      </button>
+      <button onclick="switchTab('orders'); setActiveNav(this);" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-orders">
+        <span class="text-lg">📦</span>
+        <span class="text-[10px] font-semibold mt-0.5">Orders</span>
+      </button>
+      <button onclick="switchTab('profile'); setActiveNav(this);" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-profile">
+        <span class="text-lg">👤</span>
+        <span class="text-[10px] font-semibold mt-0.5">Profile</span>
+      </button>
+    </div>
+  </nav>
+
+  <script src="app.js"></script>
 </body>
 </html>
