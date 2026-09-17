@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Clean, Fresh & Unified Application Logic
+// PiNexusCommerce - Regression-Free Application Logic
 // ==========================================
 
 const sampleProducts = [
@@ -317,50 +317,6 @@ function toggleVoiceRecording() {
   recognition.start();
 }
 
-// --- Render Today's Opportunities ---
-function loadOpportunities(productsToDisplay = sampleProducts) {
-  const container = document.getElementById('opportunities-container');
-  if (!container) return;
-
-  container.innerHTML = productsToDisplay.map(p => `
-    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4 transition-all hover:shadow-md">
-      <div class="flex justify-between items-start mb-2">
-        <span class="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
-          ⚡ Sample Opportunity
-        </span>
-        <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full">
-          ${p.category}
-        </span>
-      </div>
-      
-      <h3 class="font-bold text-gray-900 text-base mb-1.5">${p.name}</h3>
-      <p class="text-xs text-gray-600 mb-3 leading-relaxed">${p.description}</p>
-      
-      <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 space-y-1.5 mb-4 border border-gray-100">
-        <div class="flex justify-between">
-          <span class="text-gray-500">Source Market:</span>
-          <span class="font-medium">${p.sourceMarket} (${p.currency}${p.sourcePrice})</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-500">Destination Target:</span>
-          <span class="font-medium">${p.destinationMarket}</span>
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-2.5 pt-1">
-        <button onclick="openAiAdvisorPermission(${p.id})" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
-          Ask AI Advisor
-        </button>
-        <button type="button" data-product-id="${p.id}" class="order-btn w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm cursor-pointer active:scale-95">
-          🔒 Proceed to Order / Pi Payment
-        </button>
-      </div>
-
-      <div id="ai-advisor-box-${p.id}" class="mt-3"></div>
-    </div>
-  `).join('');
-}
-
 // --- Bulletproof Event Delegation for Order Buttons ---
 function initOrderButtonDelegation() {
   const container = document.getElementById('opportunities-container');
@@ -515,4 +471,67 @@ function renderProductAiAdvisor(product) {
         <h5 class="font-semibold text-purple-700 text-xs mb-2">Detailed Estimate Analysis (${product.name})</h5>
         <div class="text-[11px] text-gray-600 space-y-1 mb-3 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
           <div><strong>Source Price:</strong> ${product.currency}${product.sourcePrice}</div>
-     
+          <div><strong>Estimated Cost:</strong> ₹${a.totalCost}</div>
+          <div><strong>Selling Price Range:</strong> ${a.sellingRange}</div>
+          <div><strong>Estimated Gross Margin:</strong> ${a.grossMargin}</div>
+          <div><strong>Market Info:</strong> ${a.marketInfo}</div>
+          <div><strong>Risk Factors:</strong> ${a.riskFactors}</div>
+        </div>
+        <p class="text-[9px] text-gray-400 italic mb-3">"AI estimates are for reference only."</p>
+        <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg font-medium text-xs">Close</button>
+      </div>
+    `;
+  }
+}
+
+function showProductAnalysis(productId) {
+  window.activeAiProduct = { id: productId, state: 'analysis' };
+  renderProductAiAdvisor(sampleProducts.find(p => p.id === productId));
+}
+
+function closeProductAi(productId) {
+  window.activeAiProduct = null;
+  const targetBox = document.getElementById(`ai-advisor-box-${productId}`);
+  if (targetBox) targetBox.innerHTML = '';
+}
+
+// --- Navigation & Role Handling ---
+function selectRole(role) {
+  localStorage.setItem('piNexusRole', role);
+}
+
+function loadSavedRole() {
+  const saved = localStorage.getItem('piNexusRole') || 'Buyer';
+  const el = document.getElementById('roleSelect');
+  if (el) el.value = saved;
+}
+
+function switchTab(tabName) {
+  ['home', 'discover', 'advisor', 'orders', 'profile'].forEach(t => {
+    const el = document.getElementById(`tab-${t}`);
+    if (el) el.classList.toggle('hidden', t !== tabName);
+  });
+  if (tabName === 'orders') {
+    renderOrdersScreen();
+  }
+}
+
+function setActiveNav(btn) {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('active', 'text-purple-600');
+    item.classList.add('text-gray-600');
+  });
+  btn.classList.add('active', 'text-purple-600');
+  btn.classList.remove('text-gray-600');
+}
+
+function searchOpportunities() {}
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    loadSavedRole();
+    switchTab('home');
+    updateAssistantUI();
+    initOrderButtonDelegation();
+  
