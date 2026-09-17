@@ -517,7 +517,51 @@ nav svg, .fixed-bottom-nav svg {
 h2.font-bold, 
 div > h3.font-bold {
   color: #111827 !important;
+}/* ==========================================
+   PiNexusCommerce - Final Micro Visual Fix
+   ========================================= */
+
+/* 1. Fix Bottom Navigation Visibility & Opacity */
+nav, .fixed-bottom-nav, #bottom-nav, div[class*="bottom-0"] {
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  border-top: 1px solid #cbd5e1 !important;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1) !important;
+  z-index: 9999 !important;
 }
+
+nav a:not(.active), 
+nav button:not(.active), 
+.nav-item:not(.active),
+.fixed-bottom-nav span,
+.fixed-bottom-nav svg,
+#bottom-nav span,
+#bottom-nav svg {
+  color: #1e293b !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+
+nav a.active, 
+nav button.active, 
+.nav-item.active {
+  color: #6366f1 !important; /* Preserves existing active purple */
+  opacity: 1 !important;
+}
+
+/* 2. Fix Today's Opportunities Heading Color (Make it standard dark) */
+#opportunities-container ~ h2,
+h2:has(+ #opportunities-container),
+.section-heading-today,
+h3:has-text("Today's Opportunities"),
+div h2.font-bold,
+#tab-home h2 {
+  color: #111827 !important;
+}
+
 
 
 
