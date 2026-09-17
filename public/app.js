@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Core Matching & AI Assistant Logic
+// PiNexusCommerce - Phase 1: AI Commerce Intelligence
 // ==========================================
 
 const sampleProducts = [
@@ -51,68 +51,342 @@ const sampleProducts = [
   }
 ];
 
-window.commerceContext = window.commerceContext || {
+// --- Phase 1: Persistent Commerce Requirement State ---
+window.commerceRequirement = window.commerceRequirement || {
   product: null,
   category: null,
   quantity: null,
-  sourceMarket: null,
-  destinationMarket: null,
+  unit: null,
+  sourceCountry: null,
+  destinationCountry: null,
+  purpose: null,
   budget: null,
-  purpose: 'Reselling',
-  intent: 'OPPORTUNITY_DISCOVERY'
+  targetPrice: null,
+  qualityRequirements: null,
+  shippingRequirement: null,
+  urgency: null,
+  additionalRequirements: null,
+  status: 'COLLECTING' // COLLECTING, CONFIRMED
 };
 
 window.chatHistory = window.chatHistory || [];
 window.activeAiProduct = window.activeAiProduct || null;
 
-// --- Intent Parser & Requirement Extractor ---
+// --- Advanced Intent Parser & Multi-Turn State Accumulator ---
 function parseAndExtractRequirements(text) {
   const lower = text.toLowerCase();
-  
-  if (lower.includes('bulb') || lower.includes('led')) {
-    window.commerceContext.product = 'Smart LED Bulb';
-    window.commerceContext.category = 'Electronics';
-  } else if (lower.includes('bag') || lower.includes('cotton') || lower.includes('tote')) {
-    window.commerceContext.product = 'Cotton Tote Bag';
-    window.commerceContext.category = 'Clothing';
-  }
 
-  const qtyMatch = text.match(/\b(\d+)\s*(pieces|units|pcs|bulb|bag)?/i);
+  // 1. Quantity & Unit Extraction (handles updates like "500 nahi 1000 chahiye")
+  const qtyMatch = text.match(/\b(\d+)\s*(pieces|units|pcs|bulb|bulbs|bag|bags|shoes|pairs)?/i);
   if (qtyMatch && qtyMatch[1]) {
-    window.commerceContext.quantity = parseInt(qtyMatch[1], 10);
+    window.commerceRequirement.quantity = parseInt(qtyMatch[1], 10);
   }
 
-  if (lower.includes('from india') || lower.includes('source india')) {
-    window.commerceContext.sourceMarket = 'India';
+  // 2. Product / Category Extraction
+  if (lower.includes('bulb') || lower.includes('led')) {
+    window.commerceRequirement.product = 'LED Bulb';
+    window.commerceRequirement.category = 'Electronics';
+  } else if (lower.includes('bag') || lower.includes('cotton') || lower.includes('tote')) {
+    window.commerceRequirement.product = 'Cotton Bags';
+    window.commerceRequirement.category = 'Clothing';
+  } else if (lower.includes('shoe') || lower.includes('shoes')) {
+    window.commerceRequirement.product = 'Shoes';
+    window.commerceRequirement.category = 'Footwear';
+  } else if (lower.includes('electronics')) {
+    window.commerceRequirement.category = 'Electronics';
   }
 
-  if (lower.includes('usa') || lower.includes('america') || lower.includes('sell in usa')) {
-    window.commerceContext.destinationMarket = 'USA';
-  } else if (lower.includes('uae') || lower.includes('dubai') || lower.includes('sell in uae')) {
-    window.commerceContext.destinationMarket = 'UAE';
+  // 3. Source Country Extraction
+  if (lower.includes('india') || lower.includes('se india') || lower.includes('from india')) {
+    window.commerceRequirement.sourceCountry = 'India';
+  }
+
+  // 4. Destination Country / Market Extraction (handles modifications like "usa nahi uae mein")
+  if (lower.includes('uae') || lower.includes('dubai') || lower.includes('mein uae')) {
+    window.commerceRequirement.destinationCountry = 'UAE';
+  } else if (lower.includes('usa') || lower.includes('america') || lower.includes('mein usa')) {
+    window.commerceRequirement.destinationCountry = 'USA';
+  }
+
+  // 5. Purpose Extraction
+  if (lower.includes('bechne') || lower.includes('sell') || lower.includes('resale') || lower.includes('business')) {
+    window.commerceRequirement.purpose = 'Resale / Business';
+  } else if (lower.includes('wholesale') || lower.includes('saste rate')) {
+    window.commerceRequirement.purpose = 'Wholesale Sourcing';
+  } else if (lower.includes('personal')) {
+    window.commerceRequirement.purpose = 'Personal Purchase';
+  }
+
+  // 6. Price / Budget Preference
+  if (lower.includes('saste') || lower.includes('cheap') || lower.includes('low cost')) {
+    window.commerceRequirement.targetPrice = 'Cost-effective / Low Price';
   }
 }
 
-function findSmartMatches() {
-  return sampleProducts.map(product => {
-    let score = 0;
-    let matchType = 'Possible Match';
+// --- Progressive Missing Information Evaluator ---
+function getNextClarifyingQuestion() {
+  const req = window.commerceRequirement;
+  
+  if (!req.product && !req.category) {
+    return "आप किस product या category की तलाश कर रहे हैं?";
+  }
+  if (!req.quantity) {
+    return `आपको ${req.product || 'इस item'} की कितनी quantity चाहिए?`;
+  }
+  if (!req.sourceCountry) {
+    return `आप ${req.product || 'इस product'} को किस country से source (purchase) करना चाहते हैं?`;
+  }
+  if (!req.destinationCountry) {
+    return `आप इसे किस country या market में sell या use करना चाहते हैं?`;
+  }
+  if (!req.purpose) {
+    return "यह purchase किस उद्देश्य के लिए है (जैसे resale, wholesale sourcing, या personal use)?";
+  }
+  
+  return null; // All core info collected
+}
 
-    if (window.commerceContext.product && product.name.toLowerCase().includes(window.commerceContext.product.toLowerCase())) {
-      score += 40;
-    }
-    if (window.commerceContext.sourceMarket && product.sourceMarket.toLowerCase() === window.commerceContext.sourceMarket.toLowerCase()) {
-      score += 30;
-    }
-    if (window.commerceContext.destinationMarket && product.destinationMarket.toLowerCase() === window.commerceContext.destinationMarket.toLowerCase()) {
-      score += 30;
-    }
+// --- Render AI Commerce Assistant Widget ---
+function renderCommerceAssistant() {
+  let assistantContainer = document.getElementById('commerce-assistant-container');
+  if (!assistantContainer) return;
 
-    if (score >= 70) matchType = 'High Relevance';
-    else if (score >= 40) matchType = 'Good Match';
+  assistantContainer.className = 'bg-white border border-purple-100 rounded-2xl p-4 shadow-sm my-4';
+  
+  let confirmationHtml = '';
+  const req = window.commerceRequirement;
+  
+  if (req.status === 'CONFIRMED') {
+    confirmationHtml = `
+      <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 my-2 text-xs">
+        <p class="font-bold text-purple-900 mb-1">✅ Requirement Ready</p>
+        <div class="text-gray-700 space-y-0.5 text-[11px] mb-2">
+          <div><strong>Product:</strong> ${req.product || 'N/A'}</div>
+          <div><strong>Quantity:</strong> ${req.quantity || 'N/A'}</div>
+          <div><strong>Source:</strong> ${req.sourceCountry || 'Not specified'}</div>
+          <div><strong>Destination:</strong> ${req.destinationCountry || 'Not specified'}</div>
+          <div><strong>Purpose:</strong> ${req.purpose || 'N/A'}</div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="requestAiPermissionForRequirement()" class="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
+            Ask AI Advisor for Analysis
+          </button>
+          <button onclick="editRequirement()" class="bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-gray-300 transition">
+            Edit Requirement
+          </button>
+        </div>
+      </div>
+    `;
+  } else if (req.product && req.quantity && req.destinationCountry) {
+    // Enough info gathered to show summary confirmation prompt
+    confirmationHtml = `
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 my-2 text-xs">
+        <p class="font-bold text-amber-900 mb-1">मैंने आपकी आवश्यकता इस प्रकार समझी है:</p>
+        <div class="text-gray-700 space-y-0.5 text-[11px] mb-2">
+          <div><strong>Product:</strong> ${req.product}</div>
+          <div><strong>Quantity:</strong> ${req.quantity}</div>
+          <div><strong>Source:</strong> ${req.sourceCountry || 'Not specified'}</div>
+          <div><strong>Destination:</strong> ${req.destinationCountry}</div>
+          <div><strong>Purpose:</strong> ${req.purpose || 'General Sourcing'}</div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="confirmRequirement()" class="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
+            [Confirm Requirement]
+          </button>
+          <button onclick="editRequirement()" class="bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-gray-300 transition">
+            [Edit Requirement]
+          </button>
+        </div>
+      </div>
+    `;
+  }
 
-    return { product, score, matchType };
-  }).sort((a, b) => b.score - a.score);
+  assistantContainer.innerHTML = `
+    <div class="flex justify-between items-center mb-2">
+      <h3 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
+        🤖 AI Commerce Assistant (Phase 1: Intent & Sourcing)
+      </h3>
+      <button onclick="resetCommerceRequest()" class="text-[10px] text-purple-600 hover:underline font-medium">
+        Start New Request
+      </button>
+    </div>
+
+    <p class="text-[11px] text-gray-500 mb-2">Voice + Text Commerce Matcher</p>
+
+    <div id="chat-messages" class="space-y-1.5 mb-2 max-h-40 overflow-y-auto text-[11px] bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+      ${window.chatHistory.length === 0 ? '<p class="text-gray-400 italic">"Type or speak your requirement (e.g. Mujhe India se 500 LED bulb USA mein bechne hain)..."</p>' : 
+        window.chatHistory.map(msg => `<div><strong>${msg.sender}:</strong>${msg.text}</div>`).join('')}
+    </div>
+
+    ${confirmationHtml}
+
+    <!-- Hidden by default -->
+    <div id="voice-status" style="display: none;" class="text-[10px] text-red-600 font-semibold mb-2 animate-pulse">🔴 Listening... Speak now.</div>
+
+    <div class="flex gap-2 items-center">
+      <input type="text" id="assistantInput" placeholder="Type what you need..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" onkeydown="if(event.key==='Enter') handleUserSubmit()" />
+      <button onclick="handleUserSubmit()" class="bg-purple-600 text-white px-3.5 py-2.5 rounded-xl text-xs font-medium hover:bg-purple-700 transition">
+        Send
+      </button>
+      <button onclick="toggleVoiceRecording()" id="mic-btn" class="bg-gray-100 hover:bg-purple-100 text-gray-700 px-3 py-2.5 rounded-xl text-xs transition" title="Voice Command">
+        🎙️ Voice
+      </button>
+    </div>
+
+    <div id="requirement-analysis-box" class="mt-2"></div>
+  `;
+}
+
+// --- Voice Recognition Handler ---
+let recognition = null;
+function toggleVoiceRecording() {
+  const statusEl = document.getElementById('voice-status');
+  const inputEl = document.getElementById('assistantInput');
+
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('Speech recognition is not supported in your browser. Please use text input.');
+    return;
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+
+  if (statusEl) {
+    statusEl.style.display = 'block';
+    statusEl.classList.remove('hidden');
+  }
+
+  recognition.onresult = (event) => {
+    const speechText = event.results[0][0].transcript;
+    inputEl.value = speechText;
+    if (statusEl) {
+      statusEl.style.display = 'none';
+      statusEl.classList.add('hidden');
+    }
+    handleUserSubmit();
+  };
+
+  recognition.onerror = () => {
+    if (statusEl) {
+      statusEl.style.display = 'none';
+      statusEl.classList.add('hidden');
+    }
+  };
+
+  recognition.onend = () => {
+    if (statusEl) {
+      statusEl.style.display = 'none';
+      statusEl.classList.add('hidden');
+    }
+  };
+
+  recognition.start();
+}
+
+function handleUserSubmit() {
+  const inputEl = document.getElementById('assistantInput');
+  const text = inputEl.value.trim();
+  if (!text) return;
+
+  window.chatHistory.push({ sender: 'You', text: text });
+  inputEl.value = '';
+
+  // Parse & Update State
+  parseAndExtractRequirements(text);
+
+  // Check if info is still missing
+  const nextQ = getNextClarifyingQuestion();
+  let aiReply = '';
+
+  if (nextQ) {
+    aiReply = `मैंने आपकी आवश्यकता नोट कर ली है। ${nextQ}`;
+  } else {
+    aiReply = `धन्यवाद! आपकी सारी जानकारी मिल गई है। कृपया नीचे दी गई summary को confirm करें।`;
+  }
+
+  window.chatHistory.push({ sender: 'AI', text: aiReply });
+  renderCommerceAssistant();
+}
+
+function confirmRequirement() {
+  window.commerceRequirement.status = 'CONFIRMED';
+  window.chatHistory.push({ sender: 'AI', text: `Requirement Confirmed! Status: Requirement Ready. क्या आप इस requirement का detailed business analysis देखना चाहते हैं?` });
+  renderCommerceAssistant();
+}
+
+function editRequirement() {
+  window.commerceRequirement.status = 'COLLECTING';
+  window.chatHistory.push({ sender: 'AI', text: `ठीक है, आप अपनी आवश्यकता में जो बदलाव करना चाहें बता सकते हैं।` });
+  renderCommerceAssistant();
+}
+
+function requestAiPermissionForRequirement() {
+  const box = document.getElementById('requirement-analysis-box');
+  if (!box) return;
+
+  box.innerHTML = `
+    <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 mt-2 text-xs">
+      <p class="font-bold text-gray-800 mb-1">AI Business Advisor Permission</p>
+      <p class="text-gray-700 mb-2">“क्या आप इस requirement का detailed business analysis देखना चाहते हैं?”</p>
+      <div class="flex gap-2">
+        <button onclick="showConfirmedAnalysis()" class="bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
+          [Yes, Show Analysis]
+        </button>
+        <button onclick="document.getElementById('requirement-analysis-box').innerHTML=''" class="bg-gray-100 text-gray-700 py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
+          [No, Not Now]
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function showConfirmedAnalysis() {
+  const req = window.commerceRequirement;
+  const box = document.getElementById('requirement-analysis-box');
+  if (!box) return;
+
+  box.innerHTML = `
+    <div class="bg-white border border-purple-200 rounded-xl p-3 mt-2 text-xs shadow-sm">
+      <h4 class="font-bold text-purple-800 mb-1">📊 Detailed Commercial Estimate Analysis</h4>
+      <div class="text-gray-600 space-y-1 mb-2 text-[11px] bg-gray-50 p-2 rounded border">
+        <div><strong>Target Product:</strong> ${req.product || 'General Sourced Item'}</div>
+        <div><strong>Quantity:</strong> ${req.quantity || 'Not specified'}</div>
+        <div><strong>Source Market:</strong> ${req.sourceCountry || 'India (Sample Baseline)'}</div>
+        <div><strong>Destination Market:</strong> ${req.destinationCountry || 'Global Target'}</div>
+        <div><strong>Purpose:</strong> ${req.purpose || 'Resale / Business'}</div>
+        <div><strong>Estimated Market Margin:</strong> ~40% to 46% (Estimated range)</div>
+        <div><strong>Risk Factors:</strong> Logistics & customs clearance variance.</div>
+      </div>
+      <p class="text-[9px] text-gray-400 italic mb-2">"AI estimates are for reference only. Final commercial decisions rest solely with the user."</p>
+      <button onclick="prepareOrderForRequirement()" class="w-full bg-purple-600 text-white py-2 rounded-lg font-semibold text-xs hover:bg-purple-700 transition">
+        🔒 Proceed to Order / Pi Payment
+      </button>
+    </div>
+  `;
+}
+
+function resetCommerceRequest() {
+  window.commerceRequirement = {
+    product: null,
+    category: null,
+    quantity: null,
+    unit: null,
+    sourceCountry: null,
+    destinationCountry: null,
+    purpose: null,
+    budget: null,
+    targetPrice: null,
+    qualityRequirements: null,
+    shippingRequirement: null,
+    urgency: null,
+    additionalRequirements: null,
+    status: 'COLLECTING'
+  };
+  window.chatHistory = [];
+  renderCommerceAssistant();
+  loadOpportunities(sampleProducts);
 }
 
 // --- Render Opportunities (Product Cards) ---
@@ -147,7 +421,7 @@ function loadOpportunities(productsToDisplay = sampleProducts) {
 
       <div class="flex flex-col gap-2.5 pt-1">
         <button onclick="openAiAdvisorPermission(${p.id})" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
-          Ask AI Advisor (Analysis Permission)
+          Ask AI Advisor
         </button>
         <button onclick="prepareOrder(${p.id})" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm">
           🔒 Proceed to Order / Pi Payment
@@ -159,152 +433,7 @@ function loadOpportunities(productsToDisplay = sampleProducts) {
   `).join('');
 }
 
-// --- Render AI Commerce Assistant Widget ---
-function renderCommerceAssistant() {
-  let assistantContainer = document.getElementById('commerce-assistant-container');
-  if (!assistantContainer) return;
-
-  assistantContainer.className = 'bg-white border border-purple-100 rounded-2xl p-4 shadow-sm my-4';
-  assistantContainer.innerHTML = `
-    <div class="flex justify-between items-center mb-2">
-      <h3 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
-        🤖 AI Commerce Assistant
-      </h3>
-      <button onclick="resetCommerceRequest()" class="text-[10px] text-purple-600 hover:underline font-medium">
-        Start New Request
-      </button>
-    </div>
-
-    <p class="text-[11px] text-gray-500 mb-2">Voice + Text Commerce Matcher</p>
-
-    <div id="chat-messages" class="space-y-1.5 mb-2 max-h-32 overflow-y-auto text-[11px] bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-      ${window.chatHistory.length === 0 ? '<p class="text-gray-400 italic">"Type or speak your requirement..."</p>' : 
-        window.chatHistory.map(msg => `<div><strong>${msg.sender}:</strong>${msg.text}</div>`).join('')}
-    </div>
-
-    <!-- Hidden by default -->
-    <div id="voice-status" style="display: none;" class="text-[10px] text-red-600 font-semibold mb-2 animate-pulse">🔴 Listening... Speak now.</div>
-
-    <div class="flex gap-2 items-center">
-      <input type="text" id="assistantInput" placeholder="Type what you need..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" />
-      <button onclick="handleUserSubmit()" class="bg-purple-600 text-white px-3.5 py-2.5 rounded-xl text-xs font-medium hover:bg-purple-700 transition">
-        Send
-      </button>
-      <button onclick="toggleVoiceRecording()" id="mic-btn" class="bg-gray-100 hover:bg-purple-100 text-gray-700 px-3 py-2.5 rounded-xl text-xs transition" title="Voice Command">
-        🎙️ Voice
-      </button>
-    </div>
-
-    <div id="smart-matches-results" class="mt-2"></div>
-  `;
-}
-
-// --- Voice Recognition Handler ---
-let recognition = null;
-function toggleVoiceRecording() {
-  const statusEl = document.getElementById('voice-status');
-  const inputEl = document.getElementById('assistantInput');
-
-  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-    alert('Speech recognition is not supported in your browser. Please use text input.');
-    return;
-  }
-
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SpeechRecognition();
-  recognition.lang = 'en-US';
-  recognition.interimResults = false;
-
-  if (statusEl) {
-    statusEl.style.display = 'block';
-    statusEl.classList.remove('hidden');
-  }
-
-  recognition.onresult = (event) => {
-    const speechText = event.results[0][0].transcript;
-    inputEl.value = speechText;
-    if (statusEl) {
-      statusEl.style.display = 'none';
-      statusEl.classList.add('hidden');
-    }
-  };
-
-  recognition.onerror = () => {
-    if (statusEl) {
-      statusEl.style.display = 'none';
-      statusEl.classList.add('hidden');
-    }
-  };
-
-  recognition.onend = () => {
-    if (statusEl) {
-      statusEl.style.display = 'none';
-      statusEl.classList.add('hidden');
-    }
-  };
-
-  recognition.start();
-}
-
-function handleUserSubmit() {
-  const inputEl = document.getElementById('assistantInput');
-  const text = inputEl.value.trim();
-  if (!text) return;
-
-  window.chatHistory.push({ sender: 'You', text: text });
-  inputEl.value = '';
-
-  parseAndExtractRequirements(text);
-
-  let aiReply = `Requirement understood. Product: ${window.commerceContext.product || 'General'}, Source: ${window.commerceContext.sourceMarket || 'Any'}, Destination: ${window.commerceContext.destinationMarket || 'Any'}. Matching with verified suppliers...`;
-  window.chatHistory.push({ sender: 'AI', text: aiReply });
-
-  renderCommerceAssistant();
-  renderSmartMatches();
-}
-
-function renderSmartMatches() {
-  const container = document.getElementById('smart-matches-results');
-  if (!container) return;
-
-  const matches = findSmartMatches();
-  container.innerHTML = `
-    <div class="mt-2 pt-2 border-t border-gray-100">
-      <h4 class="font-semibold text-gray-800 text-xs mb-1.5">🎯 Matching Opportunities</h4>
-      <div class="space-y-1.5">
-        ${matches.map(m => `
-          <div class="bg-white p-2 rounded-lg border border-gray-100 text-[11px] flex justify-between items-center">
-            <div>
-              <span class="font-bold text-gray-800">${m.product.name}</span>
-              <span class="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded ml-1">${m.matchType}</span>
-            </div>
-            <button onclick="loadOpportunities([sampleProducts.find(p => p.id === ${m.product.id})])" class="bg-purple-600 text-white px-2.5 py-1 rounded text-[10px] font-medium">
-              View
-            </button>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-}
-
-function resetCommerceRequest() {
-  window.commerceContext = {
-    product: null,
-    category: null,
-    quantity: null,
-    sourceMarket: null,
-    destinationMarket: null,
-    budget: null,
-    purpose: 'Reselling',
-    intent: 'OPPORTUNITY_DISCOVERY'
-  };
-  window.chatHistory = [];
-  renderCommerceAssistant();
-  loadOpportunities(sampleProducts);
-}
-
-// --- Permission-Gated AI Advisor Flow ---
+// --- Product-Specific AI Advisor Flow ---
 function openAiAdvisorPermission(productId) {
   const product = sampleProducts.find(p => p.id === productId);
   if (!product) return;
@@ -327,14 +456,14 @@ function renderProductAiAdvisor(product) {
       <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mt-3 shadow-sm">
         <h4 class="font-bold text-gray-800 text-xs mb-1">AI Business Advisor</h4>
         <p class="text-xs text-gray-700 mb-3">
-          “Would you like me to provide a detailed analysis of this product (${product.name})?”
+          “क्या आप इस requirement का detailed business analysis देखना चाहते हैं?”
         </p>
         <div class="flex flex-col gap-2">
           <button onclick="showProductAnalysis(${product.id})" class="w-full bg-purple-600 text-white py-2 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
-            Yes, Show Analysis
+            [Yes, Show Analysis]
           </button>
           <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
-            No, Not Now
+            [No, Not Now]
           </button>
         </div>
       </div>
@@ -353,103 +482,4 @@ function renderProductAiAdvisor(product) {
           <div><strong>Estimated Gross Margin:</strong> ${a.grossMargin}</div>
           <div><strong>Market Info:</strong> ${a.marketInfo}</div>
           <div><strong>Risk Factors:</strong> ${a.riskFactors}</div>
-        </div>
-
-        <p class="text-[9px] text-gray-400 italic mb-3">
-          "AI estimates are for reference only. Final commercial decisions rest solely with the user."
-        </p>
-
-        <div class="flex flex-col gap-2">
-          <button onclick="prepareOrder(${product.id})" class="w-full bg-purple-600 text-white py-2.5 px-3 rounded-lg font-semibold text-xs hover:bg-purple-700 transition">
-            🔒 Proceed to Order / Pi Payment
-          </button>
-          <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg font-medium text-xs">
-            Close
-          </button>
-        </div>
-      </div>
-    `;
-  }
-}
-
-function showProductAnalysis(productId) {
-  const product = sampleProducts.find(p => p.id === productId);
-  if (!product) return;
-  window.activeAiProduct = { id: productId, state: 'analysis' };
-  renderProductAiAdvisor(product);
-}
-
-function closeProductAi(productId) {
-  window.activeAiProduct = null;
-  const targetBox = document.getElementById(`ai-advisor-box-${productId}`);
-  if (targetBox) targetBox.innerHTML = '';
-}
-
-// --- Margin Calculator ---
-function calculateMargin() {
-  const src = parseFloat(document.getElementById('sourcePrice')?.value) || 0;
-  const add = parseFloat(document.getElementById('additionalCost')?.value) || 0;
-  const sell = parseFloat(document.getElementById('sellingPrice')?.value) || 0;
-
-  const totalCost = src + add;
-  const grossMargin = sell - totalCost;
-  const marginPct = sell > 0 ? ((grossMargin / sell) * 100).toFixed(1) : 0;
-
-  const resultEl = document.getElementById('calcResult');
-  if (resultEl) {
-    resultEl.innerHTML = `Total Cost: ₹${totalCost} | Gross Margin: ₹${grossMargin} (${marginPct}%)`;
-  }
-}
-
-// --- Navigation & Role Handling ---
-function selectRole(role) {
-  localStorage.setItem('piNexusRole', role);
-}
-
-function loadSavedRole() {
-  const saved = localStorage.getItem('piNexusRole') || 'Buyer';
-  const el = document.getElementById('roleSelect');
-  if (el) el.value = saved;
-}
-
-function switchTab(tabName) {
-  const tabs = ['home', 'discover', 'advisor', 'orders', 'profile'];
-  tabs.forEach(t => {
-    const el = document.getElementById(`tab-${t}`);
-    if (el) el.classList.toggle('hidden', t !== tabName);
-  });
-}
-
-function setActiveNav(btn) {
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.classList.remove('active', 'text-purple-600');
-    item.classList.add('text-gray-600');
-  });
-  btn.classList.add('active', 'text-purple-600');
-  btn.classList.remove('text-gray-600');
-}
-
-// --- Order / Pi Payment Flow ---
-function prepareOrder(productId) {
-  const product = sampleProducts.find(p => p.id === productId);
-  alert(`Initiating official Pi Testnet payment flow for ${product ? product.name : 'product'}. Note: Final transaction confirmation requires authorized Pi wallet interaction.`);
-}
-
-function searchOpportunities() {
-  const query = document.getElementById('searchInput')?.value.toLowerCase() || '';
-  const filtered = sampleProducts.filter(p => 
-    p.name.toLowerCase().includes(query) || 
-    p.category.toLowerCase().includes(query) ||
-    p.sourceMarket.toLowerCase().includes(query) ||
-    p.destinationMarket.toLowerCase().includes(query)
-  );
-  loadOpportunities(filtered);
-}
-
-// --- Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-  loadSavedRole();
-  switchTab('home');
-  loadOpportunities(sampleProducts);
-  renderCommerceAssistant();
-});
+        </di
