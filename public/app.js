@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Final Restored & Product-Specific app.js
+// PiNexusCommerce - Final Product Rendering Fix
 // ==========================================
 
 const sampleProducts = [
@@ -51,13 +51,19 @@ const sampleProducts = [
   }
 ];
 
-// --- Active AI Advisor Product Session ---
-window.activeAiProduct = window.activeAiProduct || null; // null, {id, state: 'permission'|'analysis'}
+window.activeAiProduct = window.activeAiProduct || null;
 
-// --- Render Opportunities & Clean Product Cards ---
+// --- Load Opportunities with Auto-Container Fallback ---
 function loadOpportunities(productsToDisplay = sampleProducts) {
   let container = document.getElementById('opportunities-container');
-  if (!container) return;
+  if (!container) {
+    // Fallback: create container dynamically if missing in index.html
+    container = document.createElement('div');
+    container.id = 'opportunities-container';
+    container.className = 'p-4 max-w-md mx-auto';
+    const mainArea = document.querySelector('main') || document.body;
+    mainArea.appendChild(container);
+  }
 
   container.innerHTML = productsToDisplay.map(p => `
     <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4 transition-all hover:shadow-md">
@@ -82,13 +88,8 @@ function loadOpportunities(productsToDisplay = sampleProducts) {
           <span class="text-gray-500">Destination Target:</span>
           <span class="font-medium">${p.destinationMarket}</span>
         </div>
-        <div class="flex justify-between">
-          <span class="text-gray-500">Category:</span>
-          <span class="font-medium">${p.category}</span>
-        </div>
       </div>
 
-      <!-- Action Buttons with clear spacing and no overlap -->
       <div class="flex flex-col gap-2.5 pt-1">
         <button onclick="openAiAdvisorPermission(${p.id})" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
           Ask AI Advisor
@@ -98,7 +99,6 @@ function loadOpportunities(productsToDisplay = sampleProducts) {
         </button>
       </div>
 
-      <!-- Product-Specific AI Advisor Box -->
       <div id="ai-advisor-box-${p.id}" class="mt-3"></div>
     </div>
   `).join('');
@@ -125,7 +125,6 @@ function openAiAdvisorPermission(productId) {
 }
 
 function renderProductAiAdvisor(product) {
-  // Clear all boxes first to ensure single source of truth
   sampleProducts.forEach(p => {
     const box = document.getElementById(`ai-advisor-box-${p.id}`);
     if (box) box.innerHTML = '';
@@ -136,7 +135,7 @@ function renderProductAiAdvisor(product) {
 
   if (window.activeAiProduct && window.activeAiProduct.state === 'permission') {
     targetBox.innerHTML = `
-      <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mt-3 shadow-sm animate-fadeIn">
+      <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mt-3 shadow-sm">
         <h4 class="font-bold text-gray-800 text-xs mb-1">AI Business Advisor</h4>
         <p class="text-xs text-gray-700 mb-3">
           Would you like me to provide a detailed analysis of this product (${product.name})?
@@ -154,7 +153,7 @@ function renderProductAiAdvisor(product) {
   } else if (window.activeAiProduct && window.activeAiProduct.state === 'analysis') {
     const a = product.analysis;
     targetBox.innerHTML = `
-      <div class="bg-white border border-purple-200 rounded-xl p-4 mt-3 shadow-md animate-fadeIn">
+      <div class="bg-white border border-purple-200 rounded-xl p-4 mt-3 shadow-md">
         <h4 class="font-bold text-gray-800 text-xs mb-1">AI Business Advisor</h4>
         <h5 class="font-semibold text-purple-700 text-xs mb-2">Detailed Estimate Analysis (${product.name})</h5>
         
@@ -243,16 +242,7 @@ function prepareOrder(productId) {
   alert(`Initiating Pi Testnet payment flow for ${name}. Official Pi Testnet confirmation pending. Note: No real Pi transaction is complete without network confirmation.`);
 }
 
-// --- Initial Load Handler ---
-document.addEventListener('DOMContentLoaded', () => {
-  loadSavedRole();
-  loadOpportunities();
-});
-// ==========================================
-// PiNexusCommerce - Product Cards Rendering Fix
-// ==========================================
-
-// Ensure loadOpportunities runs and correctly targets 'opportunities-container'
+// --- Initial Execution ---
 document.addEventListener('DOMContentLoaded', () => {
   loadSavedRole();
   loadOpportunities(sampleProducts);
