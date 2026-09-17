@@ -1,7 +1,8 @@
 // ==========================================
-// PiNexusCommerce - Restored Stable UI & Phase 1 AI Intelligence
+// PiNexusCommerce - Phase 1 & Phase 2: Matching Engine & Architecture
 // ==========================================
 
+// Sample opportunities for demonstration (Permanently and clearly labeled)
 const sampleProducts = [
   {
     id: 1,
@@ -51,6 +52,22 @@ const sampleProducts = [
   }
 ];
 
+// --- Authorized Real Supplier Data Source Registry (Extensible Architecture) ---
+window.verifiedSupplierDatabase = window.verifiedSupplierDatabase || [
+  // Example schema for real/authorized sources when connected:
+  // {
+  //   name: "ABC Lighting Pvt. Ltd.",
+  //   product: "LED Bulb",
+  //   category: "Electronics",
+  //   sourceCountry: "India",
+  //   destinationCountry: "USA",
+  //   moq: 500,
+  //   verified: true,
+  //   sourceReference: "Official supplier directory / Authorized API feed",
+  //   profileLink: "#"
+  // }
+];
+
 // --- Persistent State ---
 window.commerceRequirement = window.commerceRequirement || {
   product: null,
@@ -71,18 +88,17 @@ window.commerceRequirement = window.commerceRequirement || {
 
 window.chatHistory = window.chatHistory || [];
 window.activeAiProduct = window.activeAiProduct || null;
+window.matchingSearchResults = window.matchingSearchResults || null;
 
 // --- Phase 1: Advanced Intent Parser & State Updater ---
 function parseAndExtractRequirements(text) {
   const lower = text.toLowerCase();
 
-  // Quantity updates/extraction
   const qtyMatch = text.match(/\b(\d+)\s*(pieces|units|pcs|bulb|bulbs|bag|bags|shoes|pairs)?/i);
   if (qtyMatch && qtyMatch[1]) {
     window.commerceRequirement.quantity = parseInt(qtyMatch[1], 10);
   }
 
-  // Product / Category
   if (lower.includes('bulb') || lower.includes('led')) {
     window.commerceRequirement.product = 'LED Bulb';
     window.commerceRequirement.category = 'Electronics';
@@ -94,19 +110,16 @@ function parseAndExtractRequirements(text) {
     window.commerceRequirement.category = 'Footwear';
   }
 
-  // Source Country
   if (lower.includes('india') || lower.includes('se india') || lower.includes('from india')) {
     window.commerceRequirement.sourceCountry = 'India';
   }
 
-  // Destination Country (Handles modifications like "USA nahi UAE mein")
   if (lower.includes('uae') || lower.includes('dubai') || lower.includes('mein uae')) {
     window.commerceRequirement.destinationCountry = 'UAE';
   } else if (lower.includes('usa') || lower.includes('america') || lower.includes('mein usa')) {
     window.commerceRequirement.destinationCountry = 'USA';
   }
 
-  // Purpose
   if (lower.includes('bechne') || lower.includes('sell') || lower.includes('resale') || lower.includes('business')) {
     window.commerceRequirement.purpose = 'Resale';
   } else if (lower.includes('wholesale') || lower.includes('saste rate')) {
@@ -116,7 +129,6 @@ function parseAndExtractRequirements(text) {
   }
 }
 
-// --- Progressive Missing Information Evaluator ---
 function getNextClarifyingQuestion() {
   const req = window.commerceRequirement;
   if (!req.product && !req.category) {
@@ -126,7 +138,7 @@ function getNextClarifyingQuestion() {
     return `आपको ${req.product || 'इस item'} की कितनी quantity चाहिए?`;
   }
   if (!req.sourceCountry) {
-    return `आप इन bulbs/items को किस country से source करना चाहते हैं?`;
+    return `आप इसे किस country से source करना चाहते हैं?`;
   }
   if (!req.destinationCountry) {
     return `आप इसे किस country या market में sell या use करना चाहते हैं?`;
@@ -134,7 +146,40 @@ function getNextClarifyingQuestion() {
   return null;
 }
 
-// --- Render AI Commerce Assistant Widget (Isolated) ---
+// --- Phase 2: Reusable Matching Engine ---
+function executeSupplierMatchingEngine(requirement) {
+  const db = window.verifiedSupplierDatabase;
+  if (!db || db.length === 0) {
+    return { matches: [], status: 'NO_SOURCES_CONNECTED' };
+  }
+
+  let results = db.map(supplier => {
+    let score = 0;
+    let matchType = 'Limited Match';
+
+    if (requirement.product && supplier.product.toLowerCase().includes(requirement.product.toLowerCase())) {
+      score += 40;
+    }
+    if (requirement.sourceCountry && supplier.sourceCountry.toLowerCase() === requirement.sourceCountry.toLowerCase()) {
+      score += 25;
+    }
+    if (requirement.destinationCountry && supplier.destinationCountry.toLowerCase() === requirement.destinationCountry.toLowerCase()) {
+      score += 25;
+    }
+    if (requirement.quantity && supplier.moq && requirement.quantity >= supplier.moq) {
+      score += 10;
+    }
+
+    if (score >= 75) matchType = 'Strong Match';
+    else if (score >= 45) matchType = 'Relevant Match';
+
+    return { supplier, score, matchType };
+  }).filter(m => m.score >= 40).sort((a, b) => b.score - a.score);
+
+  return { matches: results, status: results.length > 0 ? 'MATCHES_FOUND' : 'NO_MATCH' };
+}
+
+// --- Render AI Commerce Assistant Widget ---
 function renderCommerceAssistant() {
   let assistantContainer = document.getElementById('commerce-assistant-container');
   if (!assistantContainer) return;
@@ -145,6 +190,37 @@ function renderCommerceAssistant() {
   const req = window.commerceRequirement;
 
   if (req.status === 'CONFIRMED') {
+    let matchOutputHtml = '';
+    if (window.matchingSearchResults) {
+      if (window.matchingSearchResults.status === 'NO_SOURCES_CONNECTED' || window.matchingSearchResults.matches.length === 0) {
+        matchOutputHtml = `
+          <div class="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-200 text-center text-xs text-gray-600">
+            <p class="font-semibold text-gray-800 mb-1">🔍 Phase 2 Supplier Matching Results</p>
+            <p class="text-gray-500 italic">"No verified supplier match found from current sources."</p>
+            <p class="text-[10px] text-gray-400 mt-1">Real supplier data connection required.</p>
+          </div>
+        `;
+      } else {
+        matchOutputHtml = `
+          <div class="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-200 text-xs space-y-2">
+            <p class="font-bold text-gray-800">🎯 Verified Supplier Matches Found:</p>
+            ${window.matchingSearchResults.matches.map(m => `
+              <div class="bg-white p-2.5 rounded-lg border border-gray-100 flex justify-between items-center">
+                <div>
+                  <span class="font-bold text-gray-900">${m.supplier.name}</span>
+                  <p class="text-[10px] text-gray-500">Product: ${m.supplier.product} \vert{} MOQ:${m.supplier.moq}</p>
+                  <span class="text-[9px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-medium">${m.matchType}</span>
+                </div>
+                <a href="${m.supplier.profileLink || '#'}" target="_blank" class="bg-purple-600 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-medium hover:bg-purple-700 transition">
+                  View Supplier
+                </a>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+    }
+
     summaryHtml = `
       <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 my-2 text-xs">
         <p class="font-bold text-purple-900 mb-1">✅ Requirement Ready</p>
@@ -155,9 +231,17 @@ function renderCommerceAssistant() {
           <div><strong>Destination:</strong> ${req.destinationCountry || 'Not specified'}</div>
           <div><strong>Purpose:</strong> ${req.purpose || 'General Sourcing'}</div>
         </div>
-        <button onclick="editRequirement()" class="bg-gray-200 text-gray-700 py-1 px-2.5 rounded-lg text-xs font-medium hover:bg-gray-300 transition">
-          Edit Requirement
-        </button>
+        
+        <div class="flex gap-2 mt-2">
+          <button onclick="triggerPhase2Matching()" class="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition shadow-sm">
+            Find Supplier Matches
+          </button>
+          <button onclick="editRequirement()" class="bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-gray-300 transition">
+            Edit Requirement
+          </button>
+        </div>
+
+        ${matchOutputHtml}
       </div>
     `;
   } else if (req.product && req.quantity && req.destinationCountry) {
@@ -186,7 +270,7 @@ function renderCommerceAssistant() {
   assistantContainer.innerHTML = `
     <div class="flex justify-between items-center mb-2">
       <h3 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
-        🤖 AI Commerce Assistant
+        🤖 AI Commerce Assistant (Phase 1 & Phase 2)
       </h3>
       <button onclick="resetCommerceRequest()" class="text-[10px] text-purple-600 hover:underline font-medium">
         Start New Request
@@ -214,6 +298,22 @@ function renderCommerceAssistant() {
       </button>
     </div>
   `;
+}
+
+// --- Trigger Phase 2 Matching from UI ---
+function triggerPhase2Matching() {
+  window.chatHistory.push({ sender: 'AI', text: 'Searching available supplier sources...' });
+  renderCommerceAssistant();
+
+  setTimeout(() => {
+    window.matchingSearchResults = executeSupplierMatchingEngine(window.commerceRequirement);
+    if (window.matchingSearchResults.status === 'NO_SOURCES_CONNECTED' || window.matchingSearchResults.matches.length === 0) {
+      window.chatHistory.push({ sender: 'AI', text: 'No verified supplier match found from current sources.' });
+    } else {
+      window.chatHistory.push({ sender: 'AI', text: 'I found supplier opportunities that appear relevant to your requirement.' });
+    }
+    renderCommerceAssistant();
+  }, 600);
 }
 
 // --- Voice Recognition Handler ---
@@ -283,13 +383,15 @@ function handleUserSubmit() {
 
 function confirmRequirement() {
   window.commerceRequirement.status = 'CONFIRMED';
-  window.chatHistory.push({ sender: 'AI', text: `Requirement Ready. (Note: No external supplier matching or payment has been claimed yet).` });
+  window.matchingSearchResults = null;
+  window.chatHistory.push({ sender: 'AI', text: `Requirement Ready. Click "Find Supplier Matches" to search connected supplier databases.` });
   renderCommerceAssistant();
 }
 
 function editRequirement() {
   window.commerceRequirement.status = 'COLLECTING';
-  window.chatHistory.push({ sender: 'AI', text: `ठीक है, आप अपनी आवश्यकता में जो बदलाव करना चाहें बता सकते हैं।` });
+  window.matchingSearchResults = null;
+  window.chatHistory.push({ sender: 'AI', text: `ঠিক है, आप अपनी आवश्यकता में जो बदलाव करना चाहें बता सकते हैं।` });
   renderCommerceAssistant();
 }
 
@@ -311,10 +413,11 @@ function resetCommerceRequest() {
     status: 'COLLECTING'
   };
   window.chatHistory = [];
+  window.matchingSearchResults = null;
   renderCommerceAssistant();
 }
 
-// --- Render Restored Today's Opportunities (Product Cards) ---
+// --- Render Today's Opportunities (Clearly Labeled Sample Data) ---
 function loadOpportunities(productsToDisplay = sampleProducts) {
   let container = document.getElementById('opportunities-container');
   if (!container) return;
@@ -396,105 +499,4 @@ function renderProductAiAdvisor(product) {
   } else if (window.activeAiProduct && window.activeAiProduct.state === 'analysis') {
     const a = product.analysis;
     targetBox.innerHTML = `
-      <div class="bg-white border border-purple-200 rounded-xl p-4 mt-3 shadow-md">
-        <h4 class="font-bold text-gray-800 text-xs mb-1">AI Business Advisor</h4>
-        <h5 class="font-semibold text-purple-700 text-xs mb-2">Detailed Estimate Analysis (${product.name})</h5>
-        
-        <div class="text-[11px] text-gray-600 space-y-1 mb-3 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-          <div><strong>Source Price:</strong> ${product.currency}${product.sourcePrice}</div>
-          <div><strong>Estimated Cost:</strong> ₹${a.totalCost}</div>
-          <div><strong>Selling Price Range:</strong> ${a.sellingRange}</div>
-          <div><strong>Estimated Gross Margin:</strong> ${a.grossMargin}</div>
-          <div><strong>Market Info:</strong> ${a.marketInfo}</div>
-          <div><strong>Risk Factors:</strong> ${a.riskFactors}</div>
-        </div>
-
-        <p class="text-[9px] text-gray-400 italic mb-3">
-          "AI estimates are for reference only. Final commercial decisions rest solely with the user."
-        </p>
-
-        <div class="flex flex-col gap-2">
-          <button onclick="prepareOrder(${product.id})" class="w-full bg-purple-600 text-white py-2.5 px-3 rounded-lg font-semibold text-xs hover:bg-purple-700 transition">
-            🔒 Proceed to Order / Pi Payment
-          </button>
-          <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg font-medium text-xs">
-            No, Not Now
-          </button>
-        </div>
-      </div>
-    `;
-  }
-}
-
-function showProductAnalysis(productId) {
-  const product = sampleProducts.find(p => p.id === productId);
-  if (!product) return;
-  window.activeAiProduct = { id: productId, state: 'analysis' };
-  renderProductAiAdvisor(product);
-}
-
-function closeProductAi(productId) {
-  window.activeAiProduct = null;
-  const targetBox = document.getElementById(`ai-advisor-box-${productId}`);
-  if (targetBox) targetBox.innerHTML = '';
-}
-
-// --- Margin Calculator ---
-function calculateMargin() {
-  const src = parseFloat(document.getElementById('sourcePrice')?.value) || 0;
-  const add = parseFloat(document.getElementById('additionalCost')?.value) || 0;
-  const sell = parseFloat(document.getElementById('sellingPrice')?.value) || 0;
-
-  const totalCost = src + add;
-  const grossMargin = sell - totalCost;
-  const marginPct = sell > 0 ? ((grossMargin / sell) * 100).toFixed(1) : 0;
-
-  const resultEl = document.getElementById('calcResult');
-  if (resultEl) {
-    resultEl.innerHTML = `Total Cost: ₹${totalCost} | Gross Margin: ₹${grossMargin} (${marginPct}%)`;
-  }
-}
-
-// --- Navigation & Role Handling ---
-function selectRole(role) {
-  localStorage.setItem('piNexusRole', role);
-}
-
-function loadSavedRole() {
-  const saved = localStorage.getItem('piNexusRole') || 'Buyer';
-  const el = document.getElementById('roleSelect');
-  if (el) el.value = saved;
-}
-
-function switchTab(tabName) {
-  const tabs = ['home', 'discover', 'advisor', 'orders', 'profile'];
-  tabs.forEach(t => {
-    const el = document.getElementById(`tab-${t}`);
-    if (el) el.classList.toggle('hidden', t !== tabName);
-  });
-}
-
-// --- Order / Pi Payment Flow ---
-function prepareOrder(productId) {
-  const product = sampleProducts.find(p => p.id === productId);
-  alert(`Initiating official Pi Testnet payment flow for ${product ? product.name : 'product'}. Note: Final transaction requires official Pi Network wallet authorization.`);
-}
-
-function searchOpportunities() {
-  const query = document.getElementById('searchInput')?.value.toLowerCase() || '';
-  const filtered = sampleProducts.filter(p => 
-    p.name.toLowerCase().includes(query) || 
-    p.category.toLowerCase().includes(query) ||
-    p.sourceMarket.toLowerCase().includes(query) ||
-    p.destinationMarket.toLowerCase().includes(query)
-  );
-  loadOpportunities(filtered);
-}
-
-// --- Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-  loadSavedRole();
-  switchTab('home');
-  loadOpportunities(sampleProducts);
-  renderCommerceAssistant();
-});
+      <div class="bg-white border border-purple-200 rounded
