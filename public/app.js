@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Phase 3 Bug Fix: Proceed to Order / Pi Payment Flow
+// PiNexusCommerce - Clean, Fresh & Unified Application Logic
 // ==========================================
 
 const sampleProducts = [
@@ -51,7 +51,6 @@ const sampleProducts = [
 
 window.verifiedSupplierDatabase = window.verifiedSupplierDatabase || [];
 
-// --- Persistent Orders Store ---
 window.pncOrdersStore = window.pncOrdersStore || [
   {
     orderId: 'PNC-ORD-000001',
@@ -65,7 +64,7 @@ window.pncOrdersStore = window.pncOrdersStore || [
     sourcePrice: 120,
     currency: '₹',
     destinationMarket: 'USA',
-    status: 'Order Request Created',
+    status: 'Pending Supplier Confirmation',
     createdAt: new Date().toISOString().split('T')[0],
     paymentStatus: 'Pi Payment Not Available Yet'
   }
@@ -149,7 +148,7 @@ function updateAssistantUI() {
   if (!chatBox || !summaryBox) return;
 
   chatBox.innerHTML = window.chatHistory.length === 0 
-    ? '<p class="text-gray-400 italic">"Type or speak your requirement (e.g. Mujhe India से 500 LED bulb USA भेजने हैं)..."</p>'
+    ? '<p class="text-gray-400 italic">"Type or speak your requirement..."</p>'
     : window.chatHistory.map(msg => `<div><strong>${msg.sender}:</strong> ${msg.text}</div>`).join('');
   
   chatBox.scrollTop = chatBox.scrollHeight;
@@ -162,7 +161,6 @@ function updateAssistantUI() {
         <div class="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-200 text-center text-xs text-gray-600">
           <p class="font-semibold text-gray-800 mb-1">🔍 Phase 2 Supplier Matching Results</p>
           <p class="text-gray-500 italic">"No verified supplier match found from current sources."</p>
-          <p class="text-[10px] text-gray-400 mt-1">Real supplier data connection required.</p>
         </div>
       `;
     }
@@ -175,7 +173,6 @@ function updateAssistantUI() {
           <div><strong>Quantity:</strong> ${req.quantity || 'N/A'}</div>
           <div><strong>Source:</strong> ${req.sourceCountry || 'Not specified'}</div>
           <div><strong>Destination:</strong> ${req.destinationCountry || 'Not specified'}</div>
-          <div><strong>Purpose:</strong> ${req.purpose || 'General Sourcing'}</div>
         </div>
         <div class="flex gap-2 mt-2">
           <button onclick="triggerPhase2Matching()" class="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition shadow-sm">
@@ -197,7 +194,6 @@ function updateAssistantUI() {
           <div>Quantity: ${req.quantity}</div>
           <div>Source: ${req.sourceCountry || 'Not specified'}</div>
           <div>Destination: ${req.destinationCountry}</div>
-          <div>Purpose: ${req.purpose || 'Resale'}</div>
         </div>
         <div class="flex gap-2">
           <button onclick="confirmRequirement()" class="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
@@ -280,7 +276,7 @@ function toggleVoiceRecording() {
   const inputEl = document.getElementById('assistantInput');
 
   if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-    alert('Speech recognition is not supported in your browser. Please use text input.');
+    alert('Speech recognition is not supported in your browser.');
     return;
   }
 
@@ -321,19 +317,84 @@ function toggleVoiceRecording() {
   recognition.start();
 }
 
-// --- Phase 3 Bug Fix: Proceed to Order / Pi Payment Handler ---
+// --- Render Today's Opportunities ---
+function loadOpportunities(productsToDisplay = sampleProducts) {
+  const container = document.getElementById('opportunities-container');
+  if (!container) return;
+
+  container.innerHTML = productsToDisplay.map(p => `
+    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4 transition-all hover:shadow-md">
+      <div class="flex justify-between items-start mb-2">
+        <span class="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
+          ⚡ Sample Opportunity
+        </span>
+        <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full">
+          ${p.category}
+        </span>
+      </div>
+      
+      <h3 class="font-bold text-gray-900 text-base mb-1.5">${p.name}</h3>
+      <p class="text-xs text-gray-600 mb-3 leading-relaxed">${p.description}</p>
+      
+      <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 space-y-1.5 mb-4 border border-gray-100">
+        <div class="flex justify-between">
+          <span class="text-gray-500">Source Market:</span>
+          <span class="font-medium">${p.sourceMarket} (${p.currency}${p.sourcePrice})</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Destination Target:</span>
+          <span class="font-medium">${p.destinationMarket}</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2.5 pt-1">
+        <button onclick="openAiAdvisorPermission(${p.id})" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
+          Ask AI Advisor
+        </button>
+        <button type="button" data-product-id="${p.id}" class="order-btn w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm cursor-pointer active:scale-95">
+          🔒 Proceed to Order / Pi Payment
+        </button>
+      </div>
+
+      <div id="ai-advisor-box-${p.id}" class="mt-3"></div>
+    </div>
+  `).join('');
+}
+
+// --- Bulletproof Event Delegation for Order Buttons ---
+function initOrderButtonDelegation() {
+  const container = document.getElementById('opportunities-container');
+  if (!container) return;
+
+  const handleOrderTap = (e) => {
+    const btn = e.target.closest('.order-btn');
+    if (!btn) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+
+    const productId = parseInt(btn.getAttribute('data-product-id'), 10);
+    prepareOrder(productId);
+  };
+
+  container.removeEventListener('click', handleOrderTap);
+  container.removeEventListener('touchstart', handleOrderTap);
+
+  container.addEventListener('click', handleOrderTap);
+  container.addEventListener('touchstart', handleOrderTap, { passive: false });
+}
+
+// --- Prepare Order Logic ---
 function prepareOrder(productId) {
   try {
     const product = sampleProducts.find(p => p.id === productId);
     if (!product) {
-      alert("Product opportunity not found.");
+      alert("Unable to create order request. Product opportunity not found.");
       return;
     }
 
-    // Generate unique Order ID
     const newOrderId = 'PNC-ORD-' + Math.floor(100000 + Math.random() * 900000);
     
-    // Create new order record
     const newOrder = {
       orderId: newOrderId,
       buyerId: 'BUYER-DEMO-01',
@@ -341,39 +402,36 @@ function prepareOrder(productId) {
       supplierName: product.supplierName,
       product: product.name,
       category: product.category,
-      quantity: 500, // Default baseline sample quantity
+      quantity: 500,
       sourceMarket: product.sourceMarket,
       sourcePrice: product.sourcePrice,
       currency: product.currency,
       destinationMarket: product.destinationMarket,
-      status: 'Order Request Created',
+      status: 'Pending Supplier Confirmation',
       createdAt: new Date().toISOString().split('T')[0],
       paymentStatus: 'Pi Payment Not Available Yet'
     };
 
-    // Save to persistent orders store
     window.pncOrdersStore.unshift(newOrder);
 
-    // Open Order Request Details modal/alert preview
-    const actionChoice = confirm(
+    const proceed = confirm(
       `📦 ORDER REQUEST CREATED\n\n` +
       `Order ID: ${newOrderId}\n` +
       `Product: ${product.name}\n` +
-      `Category: ${product.category}\n` +
       `Source: ${product.sourceMarket} (${product.currency}${product.sourcePrice})\n` +
       `Destination: ${product.destinationMarket}\n` +
-      `Status: Order Request Created\n` +
+      `Status: Pending Supplier Confirmation\n` +
       `Payment Status: Pi Payment Not Available Yet\n\n` +
-      `Click OK to view this order in your Orders dashboard or Cancel to stay here.`
+      `Tap OK to open your Orders dashboard.`
     );
 
-    if (actionChoice) {
+    if (proceed) {
       switchTab('orders');
       renderOrdersScreen();
     }
   } catch (err) {
-    console.error("Order creation error:", err);
-    alert("An error occurred while creating the order request. Please try again.");
+    console.error("Order error:", err);
+    alert("Unable to create order request. Please try again.");
   }
 }
 
@@ -409,7 +467,7 @@ function renderOrdersScreen() {
       </div>
 
       <div class="pt-1">
-        <button onclick="alert('Order Details for ${o.orderId}:\\nProduct: ${o.product}\\nDestination: ${o.destinationMarket}\\nStatus: ${o.status}\\n\\nNote: Pi Payment is currently unavailable for this sample order.')" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-xl text-xs font-medium transition">
+        <button onclick="alert('Order Details (${o.orderId}):\\nProduct: ${o.product}\\nDestination: ${o.destinationMarket}\\nStatus: ${o.status}\\n\\nPi Payment Not Available Yet.')" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-xl text-xs font-medium transition">
           View Order Details
         </button>
       </div>
@@ -457,66 +515,4 @@ function renderProductAiAdvisor(product) {
         <h5 class="font-semibold text-purple-700 text-xs mb-2">Detailed Estimate Analysis (${product.name})</h5>
         <div class="text-[11px] text-gray-600 space-y-1 mb-3 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
           <div><strong>Source Price:</strong> ${product.currency}${product.sourcePrice}</div>
-          <div><strong>Estimated Cost:</strong> ₹${a.totalCost}</div>
-          <div><strong>Selling Price Range:</strong> ${a.sellingRange}</div>
-          <div><strong>Estimated Gross Margin:</strong> ${a.grossMargin}</div>
-          <div><strong>Market Info:</strong> ${a.marketInfo}</div>
-          <div><strong>Risk Factors:</strong> ${a.riskFactors}</div>
-        </div>
-        <p class="text-[9px] text-gray-400 italic mb-3">"AI estimates are for reference only. Final commercial decisions rest solely with the user."</p>
-        <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg font-medium text-xs">Close</button>
-      </div>
-    `;
-  }
-}
-
-function showProductAnalysis(productId) {
-  window.activeAiProduct = { id: productId, state: 'analysis' };
-  renderProductAiAdvisor(sampleProducts.find(p => p.id === productId));
-}
-
-function closeProductAi(productId) {
-  window.activeAiProduct = null;
-  const targetBox = document.getElementById(`ai-advisor-box-${productId}`);
-  if (targetBox) targetBox.innerHTML = '';
-}
-
-// --- Navigation & Role Handling ---
-function selectRole(role) {
-  localStorage.setItem('piNexusRole', role);
-}
-
-function loadSavedRole() {
-  const saved = localStorage.getItem('piNexusRole') || 'Buyer';
-  const el = document.getElementById('roleSelect');
-  if (el) el.value = saved;
-}
-
-function switchTab(tabName) {
-  ['home', 'discover', 'advisor', 'orders', 'profile'].forEach(t => {
-    const el = document.getElementById(`tab-${t}`);
-    if (el) el.classList.toggle('hidden', t !== tabName);
-  });
-  if (tabName === 'orders') {
-    renderOrdersScreen();
-  }
-}
-
-function setActiveNav(btn) {
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.classList.remove('active', 'text-purple-600');
-    item.classList.add('text-gray-600');
-  });
-  btn.classList.add('active', 'text-purple-600');
-  btn.classList.remove('text-gray-600');
-}
-
-function searchOpportunities() {}
-
-// --- Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-  try {
-    loadSavedRole();
-    switchTab('home');
-    updateAssistantUI();
-  } catch (err
+     
