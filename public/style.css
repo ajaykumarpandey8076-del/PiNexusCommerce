@@ -218,6 +218,68 @@ nav a, nav button, .nav-item {
 nav a.active, nav button.active, .nav-item.active {
   color: #6366f1 !important; /* Distinct active state for Home */
 }
+/* ==========================================
+   PiNexusCommerce - Absolute Bottom Navigation Visibility Fix
+   ========================================= */
+
+/* Ensure enough bottom padding so content never hides behind the nav */
+body {
+  padding-bottom: 100px !important;
+}
+
+/* Force complete visibility and solid background on the navigation container */
+nav, 
+.fixed-bottom-nav, 
+footer, 
+div[class*="nav"], 
+div[class*="bottom"] {
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  border-top: 1px solid #cbd5e1 !important;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Remove any inherited low opacity or faint styling from ALL child elements */
+nav *, 
+.fixed-bottom-nav *, 
+footer *, 
+div[class*="nav"] *, 
+div[class*="bottom"] * {
+  opacity: 1 !important;
+  visibility: visible !important;
+  filter: none !important;
+}
+
+/* High contrast text labels */
+nav a, 
+nav button, 
+.nav-item, 
+nav span, 
+nav p {
+  color: #1e293b !important; /* Deep dark slate for maximum readability */
+  font-weight: 600 !important;
+}
+
+/* Active navigation item styling */
+nav a.active, 
+nav button.active, 
+.nav-item.active, 
+nav span.active {
+  color: #6366f1 !important; /* Distinct vibrant active color for Home */
+}
+
+/* Fix SVG and image icons so they inherit solid color and full visibility */
+nav svg, 
+.fixed-bottom-nav svg, 
+nav img, 
+.fixed-bottom-nav img {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+}
 
 
 
