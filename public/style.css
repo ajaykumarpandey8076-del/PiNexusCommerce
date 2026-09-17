@@ -400,7 +400,70 @@ nav i,
   fill: currentColor !important;
   stroke: currentColor !important;
   opacity: 1 !important;
+}/* ==========================================
+   PiNexusCommerce - Final Precise Bottom Nav Visibility Fix
+   ========================================= */
+
+/* Ensure enough bottom padding so content never gets covered */
+body {
+  padding-bottom: 120px !important;
 }
+
+/* Target the fixed bottom navigation container precisely */
+nav, 
+.fixed-bottom-nav, 
+footer, 
+#bottom-nav,
+div[class*="fixed"][class*="bottom"],
+div[class*="bottom-0"][class*="fixed"] {
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  border-top: 1px solid #cbd5e1 !important;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1) !important;
+  z-index: 99999 !important;
+}
+
+/* Target every interactive element, text container, span, and icon inside the nav */
+nav a, 
+nav button, 
+.nav-item, 
+nav span, 
+nav div, 
+nav p,
+.fixed-bottom-nav a,
+.fixed-bottom-nav button,
+.fixed-bottom-nav span,
+.fixed-bottom-nav div {
+  color: #1e293b !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Distinct active state for Home or current tab */
+nav a.active, 
+nav button.active, 
+.nav-item.active, 
+nav span.active,
+.active {
+  color: #6366f1 !important;
+}
+
+/* Target SVG and path elements inside the navigation to ensure crisp icons */
+nav svg, 
+.fixed-bottom-nav svg, 
+#bottom-nav svg,
+nav path, 
+.fixed-bottom-nav path,
+nav polygon,
+nav circle,
+nav rect {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  color: inherit !important;
+  opacity: 1 !important;
+}
+
 
 
 
