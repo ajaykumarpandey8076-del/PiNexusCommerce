@@ -59,7 +59,7 @@
         <p class="text-[11px] text-gray-500 mb-2">Voice + Text Commerce Matcher</p>
 
         <div id="chat-messages" class="space-y-1.5 mb-2 max-h-36 overflow-y-auto text-[11px] bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-          <p class="text-gray-400 italic">"Type or speak your requirement (e.g. Mujhe India से 500 LED bulb USA भेजने हैं)..."</p>
+          <p class="text-gray-400 italic">"Type or speak your requirement..."</p>
         </div>
 
         <div id="summary-render-box"></div>
@@ -85,83 +85,11 @@
         </div>
       </div>
 
-      <!-- Today's Opportunities Header & Guaranteed Cards -->
+      <!-- Today's Opportunities Header & Container -->
       <div>
         <h2 class="text-sm font-bold text-gray-900 mb-3 px-1">Today's Opportunities</h2>
         <div id="opportunities-container" class="space-y-4">
-          
-          <!-- Smart LED Bulb Opportunity Card -->
-          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4 transition-all hover:shadow-md">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
-                ⚡ Sample Opportunity
-              </span>
-              <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full">
-                Electronics
-              </span>
-            </div>
-            
-            <h3 class="font-bold text-gray-900 text-base mb-1.5">Smart LED Bulb</h3>
-            <p class="text-xs text-gray-600 mb-3 leading-relaxed">Energy-efficient smart lighting solution for global markets.</p>
-            
-            <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 space-y-1.5 mb-4 border border-gray-100">
-              <div class="flex justify-between">
-                <span class="text-gray-500">Source Market:</span>
-                <span class="font-medium">India (₹120)</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-500">Destination Target:</span>
-                <span class="font-medium">USA</span>
-              </div>
-            </div>
-
-            <div class="flex flex-col gap-2.5 pt-1">
-              <button onclick="openAiAdvisorPermission(1)" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
-                Ask AI Advisor
-              </button>
-              <button type="button" data-product-id="1" class="order-btn w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm cursor-pointer active:scale-95">
-                🔒 Proceed to Order / Pi Payment
-              </button>
-            </div>
-            <div id="ai-advisor-box-1" class="mt-3"></div>
-          </div>
-
-          <!-- Cotton Tote Bag Opportunity Card -->
-          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4 transition-all hover:shadow-md">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
-                ⚡ Sample Opportunity
-              </span>
-              <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full">
-                Clothing
-              </span>
-            </div>
-            
-            <h3 class="font-bold text-gray-900 text-base mb-1.5">Cotton Tote Bag</h3>
-            <p class="text-xs text-gray-600 mb-3 leading-relaxed">Eco-friendly reusable cotton carry bag.</p>
-            
-            <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 space-y-1.5 mb-4 border border-gray-100">
-              <div class="flex justify-between">
-                <span class="text-gray-500">Source Market:</span>
-                <span class="font-medium">India (₹80)</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-500">Destination Target:</span>
-                <span class="font-medium">UAE</span>
-              </div>
-            </div>
-
-            <div class="flex flex-col gap-2.5 pt-1">
-              <button onclick="openAiAdvisorPermission(2)" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
-                Ask AI Advisor
-              </button>
-              <button type="button" data-product-id="2" class="order-btn w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm cursor-pointer active:scale-95">
-                🔒 Proceed to Order / Pi Payment
-              </button>
-            </div>
-            <div id="ai-advisor-box-2" class="mt-3"></div>
-          </div>
-
+          <!-- Dynamically populated via loadOpportunities() -->
         </div>
       </div>
 
@@ -202,6 +130,30 @@
     </section>
 
   </main>
+
+  <!-- Interactive Order Request Modal Overlay -->
+  <div id="order-modal-overlay" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-sm text-purple-900">📦 Order Request Details</h3>
+        <button onclick="closeOrderModal()" class="text-gray-400 hover:text-gray-600 text-lg font-bold">×</button>
+      </div>
+      <div id="order-modal-body" class="text-xs space-y-1.5 text-gray-700">
+        <!-- Dynamic Modal Content -->
+      </div>
+      <div class="flex flex-col gap-2 pt-2">
+        <button onclick="submitOrderEnquiry()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-xl text-xs font-medium transition">
+          Send Enquiry / Request Order
+        </button>
+        <button onclick="triggerPiPaymentAttempt()" class="w-full bg-gray-900 hover:bg-gray-800 text-white py-2 rounded-xl text-xs font-medium transition">
+          Proceed to Pi Payment
+        </button>
+        <button onclick="closeOrderModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 rounded-xl text-xs font-medium transition">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Fixed Bottom Navigation Bar -->
   <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 py-2 shadow-lg">
