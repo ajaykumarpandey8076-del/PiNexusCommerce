@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Complete Fixed & Restored app.js
+// PiNexusCommerce - Complete Foolproof app.js
 // ==========================================
 
 const sampleProducts = [
@@ -35,22 +35,46 @@ const sampleProducts = [
   }
 ];
 
-// --- Render Opportunities & Product Cards safely ---
-function loadOpportunities(productsToDisplay = sampleProducts) {
-  let container = document.getElementById('opportunities-container');
-  if (!container) {
-    // Fallback: agar HTML mein container nahi mila toh heading ke baad create kar do
-    const targetHeading = document.evaluate("//h2[contains(text(), "Today's Opportunities")]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue 
-                          || document.body;
-    container = document.createElement('div');
-    container.id = 'opportunities-container';
-    container.className = 'p-4 max-w-md mx-auto';
-    if (targetHeading && targetHeading.parentNode) {
-      targetHeading.parentNode.insertBefore(container, targetHeading.nextSibling);
-    } else {
-      document.body.appendChild(container);
-    }
+// --- Ensure All UI Sections Exist & Render Products ---
+function ensureAndRenderAll() {
+  const mainArea = document.querySelector('main') || document.body;
+
+  // 1. Ensure Opportunities / Products Section
+  let oppContainer = document.getElementById('opportunities-container');
+  if (!oppContainer) {
+    oppContainer = document.createElement('div');
+    oppContainer.id = 'opportunities-container';
+    oppContainer.className = 'p-4 max-w-md mx-auto';
+    mainArea.appendChild(oppContainer);
   }
+  loadOpportunities(sampleProducts);
+
+  // 2. Ensure Margin Calculator Section
+  let calcContainer = document.getElementById('margin-calculator-container');
+  if (!calcContainer && !document.getElementById('sourcePrice')) {
+    calcContainer = document.createElement('div');
+    calcContainer.id = 'margin-calculator-container';
+    calcContainer.className = 'p-4 max-w-md mx-auto bg-white border border-gray-200 rounded-xl my-4 shadow-sm';
+    calcContainer.innerHTML = `
+      <h3 class="font-bold text-gray-800 mb-2">Margin Calculator</h3>
+      <p class="text-xs text-gray-600 mb-3">Calculate financial projections (Not a profit guarantee).</p>
+      <div class="space-y-2">
+        <input type="number" id="sourcePrice" placeholder="Source Price (₹)" class="w-full p-2 border rounded-lg text-xs" oninput="calculateMargin()" />
+        <input type="number" id="additionalCost" placeholder="Additional Cost (₹)" class="w-full p-2 border rounded-lg text-xs" oninput="calculateMargin()" />
+        <input type="number" id="sellingPrice" placeholder="Selling Price (₹)" class="w-full p-2 border rounded-lg text-xs" oninput="calculateMargin()" />
+        <div id="calcResult" class="text-xs font-semibold text-purple-700 mt-2">Total Cost: ₹0 | Gross Margin: ₹0 (0%)</div>
+      </div>
+    `;
+    mainArea.appendChild(calcContainer);
+  }
+
+  // 3. Ensure AI Business Advisor Section
+  renderAiAdvisor();
+}
+
+function loadOpportunities(productsToDisplay = sampleProducts) {
+  const container = document.getElementById('opportunities-container');
+  if (!container) return;
 
   container.innerHTML = productsToDisplay.map(p => `
     <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm mb-4">
@@ -148,11 +172,11 @@ window.aiAdvisorState = window.aiAdvisorState || 'permission';
 function renderAiAdvisor() {
   let container = document.getElementById('ai-advisor-container');
   if (!container) {
-    // Fallback container creation if missing in HTML
+    const mainArea = document.querySelector('main') || document.body;
     container = document.createElement('div');
     container.id = 'ai-advisor-container';
     container.className = 'p-4 max-w-md mx-auto my-4';
-    document.body.appendChild(container);
+    mainArea.appendChild(container);
   }
 
   if (window.aiAdvisorState === 'permission') {
@@ -227,7 +251,5 @@ function triggerAIConsent(productId) {
 // Initial Load Handler
 document.addEventListener('DOMContentLoaded', () => {
   loadSavedRole();
-  loadOpportunities();
-  renderAiAdvisor();
+  ensureAndRenderAll();
 });
-      
