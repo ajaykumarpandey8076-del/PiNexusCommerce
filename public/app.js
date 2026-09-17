@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Restored Product Cards & Data app.js
+// PiNexusCommerce - Final Restored & Product-Specific app.js
 // ==========================================
 
 const sampleProducts = [
@@ -16,7 +16,15 @@ const sampleProducts = [
     sample: true,
     supplierId: 'SUP-01',
     additionalCost: 30,
-    sellingPrice: 280
+    sellingPrice: 280,
+    analysis: {
+      totalCost: 150,
+      sellingRange: '₹280–₹322',
+      grossMargin: '₹130 (46.4%)',
+      marketInfo: 'High demand observed in USA.',
+      riskFactors: 'Shipping/customs clearance and currency fluctuation variance.',
+      alternatives: 'Alternate regional suppliers available on verification.'
+    }
   },
   {
     id: 2,
@@ -31,48 +39,22 @@ const sampleProducts = [
     sample: true,
     supplierId: 'SUP-02',
     additionalCost: 20,
-    sellingPrice: 180
+    sellingPrice: 180,
+    analysis: {
+      totalCost: 100,
+      sellingRange: '₹180–₹210',
+      grossMargin: '₹80 (44.4%)',
+      marketInfo: 'High demand observed in UAE retail markets.',
+      riskFactors: 'Logistics and local distribution compliance.',
+      alternatives: 'Alternate textile suppliers available on verification.'
+    }
   }
 ];
 
-// --- Ensure All UI Sections Exist & Render Products ---
-function ensureAndRenderAll() {
-  const mainArea = document.querySelector('main') || document.body;
+// --- Active AI Advisor Product Session ---
+window.activeAiProduct = window.activeAiProduct || null; // null, {id, state: 'permission'|'analysis'}
 
-  // 1. Ensure Opportunities / Products Section
-  let oppContainer = document.getElementById('opportunities-container');
-  if (!oppContainer) {
-    oppContainer = document.createElement('div');
-    oppContainer.id = 'opportunities-container';
-    oppContainer.className = 'p-4 max-w-md mx-auto';
-    mainArea.appendChild(oppContainer);
-  }
-  loadOpportunities(sampleProducts);
-
-  // 2. Ensure Margin Calculator Section
-  let calcContainer = document.getElementById('margin-calculator-container');
-  if (!calcContainer && !document.getElementById('sourcePrice')) {
-    calcContainer = document.createElement('div');
-    calcContainer.id = 'margin-calculator-container';
-    calcContainer.className = 'p-4 max-w-md mx-auto bg-white border border-gray-200 rounded-xl my-4 shadow-sm';
-    calcContainer.innerHTML = `
-      <h3 class="font-bold text-gray-800 mb-2">Margin Calculator</h3>
-      <p class="text-xs text-gray-600 mb-3">Calculate financial projections (Not a profit guarantee).</p>
-      <div class="space-y-2">
-        <input type="number" id="sourcePrice" placeholder="Source Price (₹)" class="w-full p-2 border rounded-lg text-xs" oninput="calculateMargin()" />
-        <input type="number" id="additionalCost" placeholder="Additional Cost (₹)" class="w-full p-2 border rounded-lg text-xs" oninput="calculateMargin()" />
-        <input type="number" id="sellingPrice" placeholder="Selling Price (₹)" class="w-full p-2 border rounded-lg text-xs" oninput="calculateMargin()" />
-        <div id="calcResult" class="text-xs font-semibold text-purple-700 mt-2">Total Cost: ₹0 | Gross Margin: ₹0 (0%)</div>
-      </div>
-    `;
-    mainArea.appendChild(calcContainer);
-  }
-
-  // 3. Ensure AI Business Advisor Section
-  renderAiAdvisor();
-}
-
-// --- Restored Polished Product Card UI ---
+// --- Render Opportunities & Clean Product Cards ---
 function loadOpportunities(productsToDisplay = sampleProducts) {
   let container = document.getElementById('opportunities-container');
   if (!container) return;
@@ -94,30 +76,30 @@ function loadOpportunities(productsToDisplay = sampleProducts) {
       <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 space-y-1.5 mb-4 border border-gray-100">
         <div class="flex justify-between">
           <span class="text-gray-500">Source Market:</span>
-          <span class="font-medium">${p.sourceMarket} (${p.currency}${p.sourcePrice})</span>
+          <span class="font-medium">${p.sourceMarket} (₹${p.sourcePrice})</span>
         </div>
         <div class="flex justify-between">
           <span class="text-gray-500">Destination Target:</span>
           <span class="font-medium">${p.destinationMarket}</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-gray-500">Supplier ID:</span>
-          <span class="font-medium">${p.supplierId}</span>
-        </div>
-        <div class="flex justify-between border-t border-gray-200 pt-1 mt-1">
-          <span class="text-gray-600 font-semibold">Selling Price:</span>
-          <span class="font-bold text-purple-700">${p.currency}${p.sellingPrice}</span>
+          <span class="text-gray-500">Category:</span>
+          <span class="font-medium">${p.category}</span>
         </div>
       </div>
 
-      <div class="flex flex-col sm:flex-row gap-2.5 pt-1">
-        <button onclick="triggerAIConsent(${p.id})" class="flex-1 bg-purple-600 text-white py-2 px-3.5 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
+      <!-- Action Buttons with clear spacing and no overlap -->
+      <div class="flex flex-col gap-2.5 pt-1">
+        <button onclick="openAiAdvisorPermission(${p.id})" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
           Ask AI Advisor
         </button>
-        <button onclick="prepareOrder(${p.id})" class="flex-1 bg-gray-900 text-white py-2 px-3.5 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm">
-          Proceed to Order / Pi Payment
+        <button onclick="prepareOrder(${p.id})" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm">
+          🔒 Proceed to Order / Pi Payment
         </button>
       </div>
+
+      <!-- Product-Specific AI Advisor Box -->
+      <div id="ai-advisor-box-${p.id}" class="mt-3"></div>
     </div>
   `).join('');
 }
@@ -131,6 +113,90 @@ function searchOpportunities() {
     p.destinationMarket.toLowerCase().includes(query)
   );
   loadOpportunities(filtered);
+}
+
+// --- Product-Specific AI Advisor Flow ---
+function openAiAdvisorPermission(productId) {
+  const product = sampleProducts.find(p => p.id === productId);
+  if (!product) return;
+
+  window.activeAiProduct = { id: productId, state: 'permission' };
+  renderProductAiAdvisor(product);
+}
+
+function renderProductAiAdvisor(product) {
+  // Clear all boxes first to ensure single source of truth
+  sampleProducts.forEach(p => {
+    const box = document.getElementById(`ai-advisor-box-${p.id}`);
+    if (box) box.innerHTML = '';
+  });
+
+  const targetBox = document.getElementById(`ai-advisor-box-${product.id}`);
+  if (!targetBox) return;
+
+  if (window.activeAiProduct && window.activeAiProduct.state === 'permission') {
+    targetBox.innerHTML = `
+      <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mt-3 shadow-sm animate-fadeIn">
+        <h4 class="font-bold text-gray-800 text-xs mb-1">AI Business Advisor</h4>
+        <p class="text-xs text-gray-700 mb-3">
+          Would you like me to provide a detailed analysis of this product (${product.name})?
+        </p>
+        <div class="flex flex-col gap-2">
+          <button onclick="showProductAnalysis(${product.id})" class="w-full bg-purple-600 text-white py-2 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
+            Yes, Show Analysis
+          </button>
+          <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
+            No, Not Now
+          </button>
+        </div>
+      </div>
+    `;
+  } else if (window.activeAiProduct && window.activeAiProduct.state === 'analysis') {
+    const a = product.analysis;
+    targetBox.innerHTML = `
+      <div class="bg-white border border-purple-200 rounded-xl p-4 mt-3 shadow-md animate-fadeIn">
+        <h4 class="font-bold text-gray-800 text-xs mb-1">AI Business Advisor</h4>
+        <h5 class="font-semibold text-purple-700 text-xs mb-2">Detailed Estimate Analysis (${product.name})</h5>
+        
+        <div class="text-[11px] text-gray-600 space-y-1 mb-3 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+          <div><strong>Source Price:</strong> ₹${product.sourcePrice}</div>
+          <div><strong>Estimated Additional Cost:</strong> ₹${product.additionalCost}</div>
+          <div><strong>Estimated Total Cost:</strong> ₹${a.totalCost}</div>
+          <div><strong>Potential Selling Price Range:</strong> ${a.sellingRange}</div>
+          <div><strong>Potential Gross Margin:</strong> ${a.grossMargin}</div>
+          <div><strong>Market Information:</strong> ${a.marketInfo}</div>
+          <div><strong>Risk Factors:</strong> ${a.riskFactors}</div>
+          <div><strong>Alternative Options:</strong> ${a.alternatives}</div>
+        </div>
+
+        <p class="text-[9px] text-gray-400 italic mb-3">
+          "This information is based on available data and estimates. Actual prices, costs and market conditions may change. The final decision is yours."
+        </p>
+
+        <div class="flex flex-col gap-2 pt-2 border-t border-gray-100">
+          <button onclick="prepareOrder(${product.id})" class="w-full bg-purple-600 text-white py-2.5 px-3 rounded-lg font-semibold text-xs hover:bg-purple-700 transition flex items-center justify-center gap-1.5 shadow-sm">
+            🔒 Proceed to Order / Pi Payment
+          </button>
+          <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg font-medium text-xs hover:bg-gray-200 transition">
+            No, Not Now
+          </button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function showProductAnalysis(productId) {
+  const product = sampleProducts.find(p => p.id === productId);
+  if (!product) return;
+  window.activeAiProduct = { id: productId, state: 'analysis' };
+  renderProductAiAdvisor(product);
+}
+
+function closeProductAi(productId) {
+  window.activeAiProduct = null;
+  const targetBox = document.getElementById(`ai-advisor-box-${productId}`);
+  if (targetBox) targetBox.innerHTML = '';
 }
 
 // --- Margin Calculator ---
@@ -173,104 +239,12 @@ function switchTab(tabName) {
 // --- Order / Pi Payment Flow ---
 function prepareOrder(productId) {
   const product = sampleProducts.find(p => p.id === productId);
-  if (product) {
-    alert(`Initiating Pi Testnet payment flow for ${product.name}. Official Pi Testnet confirmation pending.`);
-  } else {
-    alert('Initiating Pi Testnet payment flow.');
-  }
+  const name = product ? product.name : 'Product';
+  alert(`Initiating Pi Testnet payment flow for ${name}. Official Pi Testnet confirmation pending. Note: No real Pi transaction is complete without network confirmation.`);
 }
 
-function openOrderFlow() {
-  alert('Opening Pi payment & order flow...');
-}
-
-// ==========================================
-// AI Business Advisor State Machine (Isolated)
-// ==========================================
-
-window.aiAdvisorState = window.aiAdvisorState || 'permission';
-
-function renderAiAdvisor() {
-  let container = document.getElementById('ai-advisor-container');
-  if (!container) {
-    const mainArea = document.querySelector('main') || document.body;
-    container = document.createElement('div');
-    container.id = 'ai-advisor-container';
-    container.className = 'p-4 max-w-md mx-auto my-4';
-    mainArea.appendChild(container);
-  }
-
-  if (window.aiAdvisorState === 'permission') {
-    container.innerHTML = `
-      <div class="bg-purple-50 border border-purple-200 rounded-2xl p-4 shadow-sm mb-4">
-        <h3 class="font-bold text-gray-800 mb-2">AI Business Advisor</h3>
-        <p class="text-sm text-gray-700 mb-3">
-          Would you like the AI Advisor to generate a detailed commercial and estimate analysis for your business products?
-        </p>
-        <button id="yes-analysis-btn" class="bg-purple-600 text-white py-2 px-4 rounded-xl font-medium text-sm hover:bg-purple-700 transition w-full shadow-sm">
-          Yes, Show Analysis
-        </button>
-      </div>
-    `;
-  } else if (window.aiAdvisorState === 'analysis') {
-    container.innerHTML = `
-      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-md mt-4 transition-all">
-        <h3 class="font-bold text-gray-800 mb-2">AI Business Advisor</h3>
-        <h4 class="font-semibold text-gray-800 mb-2">Detailed Estimate Analysis</h4>
-        <p class="text-xs text-gray-600 mb-4">
-          Based on current market estimates and your product margins, here is the breakdown of your commercial performance and pricing viability.
-        </p>
-        <p class="text-[10px] text-gray-400 italic mb-4">
-          Disclaimer: Estimates are provided for guidance purposes only. The user retains final decision-making authority over all pricing and transactions.
-        </p>
-        <div class="flex flex-col gap-2.5 pt-2 border-t border-gray-100">
-          <button id="proceed-payment-btn" class="w-full bg-purple-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-purple-700 transition flex items-center justify-center gap-2 shadow-sm">
-            Proceed to Order / Pi Payment
-          </button>
-          <button id="no-now-btn" class="w-full bg-gray-100 text-gray-700 py-2.5 rounded-xl font-medium text-sm hover:bg-gray-200 transition">
-            No, Not Now
-          </button>
-        </div>
-      </div>
-    `;
-  }
-
-  // Bind Event Handlers safely
-  const yesBtn = document.getElementById('yes-analysis-btn');
-  if (yesBtn) {
-    yesBtn.onclick = () => {
-      window.aiAdvisorState = 'analysis';
-      renderAiAdvisor();
-    };
-  }
-
-  const proceedBtn = document.getElementById('proceed-payment-btn');
-  if (proceedBtn) {
-    proceedBtn.onclick = () => {
-      openOrderFlow();
-    };
-  }
-
-  const noBtn = document.getElementById('no-now-btn');
-  if (noBtn) {
-    noBtn.onclick = () => {
-      window.aiAdvisorState = 'permission';
-      renderAiAdvisor();
-    };
-  }
-}
-
-function triggerAIConsent(productId) {
-  window.aiAdvisorState = 'analysis';
-  renderAiAdvisor();
-  const container = document.getElementById('ai-advisor-container');
-  if (container) {
-    container.scrollIntoView({ behavior: 'smooth' });
-  }
-}
-
-// Initial Load Handler
+// --- Initial Load Handler ---
 document.addEventListener('DOMContentLoaded', () => {
   loadSavedRole();
-  ensureAndRenderAll();
+  loadOpportunities();
 });
