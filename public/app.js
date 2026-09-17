@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Restored Home & Isolated Phase 1/2 State
+// PiNexusCommerce - Bulletproof Stable Application Logic
 // ==========================================
 
 const sampleProducts = [
@@ -78,6 +78,7 @@ window.matchingSearchResults = window.matchingSearchResults || null;
 
 // --- Phase 1: Intent Parser & State Updater ---
 function parseAndExtractRequirements(text) {
+  if (!text) return;
   const lower = text.toLowerCase();
 
   const qtyMatch = text.match(/\b(\d+)\s*(pieces|units|pcs|bulb|bulbs|bag|bags|shoes|pairs)?/i);
@@ -326,6 +327,7 @@ function toggleVoiceRecording() {
 
 function handleUserSubmit() {
   const inputEl = document.getElementById('assistantInput');
+  if (!inputEl) return;
   const text = inputEl.value.trim();
   if (!text) return;
 
@@ -508,4 +510,4 @@ function selectRole(role) {
 }
 
 function loadSavedRole() {
-  const saved = localStorage.getItem('piNexusRole') 
+  const sav
