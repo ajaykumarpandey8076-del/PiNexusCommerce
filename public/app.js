@@ -248,3 +248,13 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSavedRole();
   loadOpportunities();
 });
+// ==========================================
+// PiNexusCommerce - Product Cards Rendering Fix
+// ==========================================
+
+// Ensure loadOpportunities runs and correctly targets 'opportunities-container'
+document.addEventListener('DOMContentLoaded', () => {
+  loadSavedRole();
+  loadOpportunities(sampleProducts);
+});
+
