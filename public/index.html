@@ -45,7 +45,7 @@
         </p>
       </div>
 
-      <!-- AI Commerce Assistant Widget (Statically Pre-rendered for Bulletproof Visibility) -->
+      <!-- AI Commerce Assistant Widget -->
       <div id="commerce-assistant-container" class="bg-white border border-purple-100 rounded-2xl p-4 shadow-sm my-4">
         <div class="flex justify-between items-center mb-2">
           <h3 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
@@ -59,7 +59,7 @@
         <p class="text-[11px] text-gray-500 mb-2">Voice + Text Commerce Matcher</p>
 
         <div id="chat-messages" class="space-y-1.5 mb-2 max-h-36 overflow-y-auto text-[11px] bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-          <p class="text-gray-400 italic">"Type or speak your requirement (e.g. Mujhe India से 500 LED bulb USA भेजने हैं)..."</p>
+          <p class="text-gray-400 italic">"Type or speak your requirement..."</p>
         </div>
 
         <div id="summary-render-box"></div>
@@ -85,83 +85,11 @@
         </div>
       </div>
 
-      <!-- Today's Opportunities Header & Statically Guaranteed Cards -->
+      <!-- Today's Opportunities Header & Container -->
       <div>
         <h2 class="text-sm font-bold text-gray-900 mb-3 px-1">Today's Opportunities</h2>
         <div id="opportunities-container" class="space-y-4">
-          
-          <!-- Smart LED Bulb Sample Card -->
-          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
-                ⚡ Sample Opportunity
-              </span>
-              <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full">
-                Electronics
-              </span>
-            </div>
-            
-            <h3 class="font-bold text-gray-900 text-base mb-1.5">Smart LED Bulb</h3>
-            <p class="text-xs text-gray-600 mb-3 leading-relaxed">Energy-efficient smart lighting solution for global markets.</p>
-            
-            <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 space-y-1.5 mb-4 border border-gray-100">
-              <div class="flex justify-between">
-                <span class="text-gray-500">Source Market:</span>
-                <span class="font-medium">India (₹120)</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-500">Destination Target:</span>
-                <span class="font-medium">USA</span>
-              </div>
-            </div>
-
-            <div class="flex flex-col gap-2.5 pt-1">
-              <button onclick="openAiAdvisorPermission(1)" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
-                Ask AI Advisor
-              </button>
-              <button onclick="prepareOrder(1)" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm">
-                🔒 Proceed to Order / Pi Payment
-              </button>
-            </div>
-            <div id="ai-advisor-box-1" class="mt-3"></div>
-          </div>
-
-          <!-- Cotton Tote Bag Sample Card -->
-          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
-                ⚡ Sample Opportunity
-              </span>
-              <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full">
-                Clothing
-              </span>
-            </div>
-            
-            <h3 class="font-bold text-gray-900 text-base mb-1.5">Cotton Tote Bag</h3>
-            <p class="text-xs text-gray-600 mb-3 leading-relaxed">Eco-friendly reusable cotton carry bag.</p>
-            
-            <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 space-y-1.5 mb-4 border border-gray-100">
-              <div class="flex justify-between">
-                <span class="text-gray-500">Source Market:</span>
-                <span class="font-medium">India (₹80)</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-500">Destination Target:</span>
-                <span class="font-medium">UAE</span>
-              </div>
-            </div>
-
-            <div class="flex flex-col gap-2.5 pt-1">
-              <button onclick="openAiAdvisorPermission(2)" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
-                Ask AI Advisor
-              </button>
-              <button onclick="prepareOrder(2)" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm">
-                🔒 Proceed to Order / Pi Payment
-              </button>
-            </div>
-            <div id="ai-advisor-box-2" class="mt-3"></div>
-          </div>
-
+          <!-- Dynamically populated via loadOpportunities() -->
         </div>
       </div>
 
@@ -185,10 +113,11 @@
 
     <!-- Orders Tab -->
     <section id="tab-orders" class="hidden space-y-4">
-      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm text-center py-8">
-        <span class="text-2xl mb-2 block">🔒</span>
-        <h2 class="font-bold text-sm text-gray-900 mb-1">Pi Network Payment & Orders</h2>
-        <p class="text-xs text-gray-600 mb-4">Secure escrow and verified transactions via official Pi Testnet mechanisms.</p>
+      <div class="space-y-3">
+        <h2 class="font-bold text-sm text-gray-900 px-1">My Orders & Escrow</h2>
+        <div id="orders-content-container">
+          <!-- Orders populated dynamically -->
+        </div>
       </div>
     </section>
 
