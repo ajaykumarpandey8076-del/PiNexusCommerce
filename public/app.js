@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Root-Cause Stability & Integration Fix
+// PiNexusCommerce - Core Matching & AI Assistant Logic
 // ==========================================
 
 const sampleProducts = [
@@ -21,9 +21,9 @@ const sampleProducts = [
       totalCost: 150,
       sellingRange: '₹280–₹322',
       grossMargin: '₹130 (46.4%)',
-      marketInfo: 'High demand observed in USA.',
+      marketInfo: 'High demand observed in USA retail channels.',
       riskFactors: 'Shipping/customs clearance and currency fluctuation variance.',
-      alternatives: 'Alternate regional suppliers available on verification.'
+      alternatives: 'Alternate regional suppliers available upon verification.'
     }
   },
   {
@@ -46,12 +46,11 @@ const sampleProducts = [
       grossMargin: '₹80 (44.4%)',
       marketInfo: 'High demand observed in UAE retail markets.',
       riskFactors: 'Logistics and local distribution compliance.',
-      alternatives: 'Alternate textile suppliers available on verification.'
+      alternatives: 'Alternate textile suppliers available upon verification.'
     }
   }
 ];
 
-// --- Persistent Conversation State & Request Context ---
 window.commerceContext = window.commerceContext || {
   product: null,
   category: null,
@@ -92,15 +91,8 @@ function parseAndExtractRequirements(text) {
   } else if (lower.includes('uae') || lower.includes('dubai') || lower.includes('sell in uae')) {
     window.commerceContext.destinationMarket = 'UAE';
   }
-
-  if (lower.includes('manufacture') || lower.includes('i sell') || lower.includes('supplier')) {
-    window.commerceContext.intent = 'SELL';
-  } else if (lower.includes('need') || lower.includes('buy') || lower.includes('source')) {
-    window.commerceContext.intent = 'BUY';
-  }
 }
 
-// --- Smart Commerce Matching Engine ---
 function findSmartMatches() {
   return sampleProducts.map(product => {
     let score = 0;
@@ -116,29 +108,20 @@ function findSmartMatches() {
       score += 30;
     }
 
-    if (score >= 70) {
-      matchType = 'High Relevance';
-    } else if (score >= 40) {
-      matchType = 'Good Match';
-    }
+    if (score >= 70) matchType = 'High Relevance';
+    else if (score >= 40) matchType = 'Good Match';
 
     return { product, score, matchType };
   }).sort((a, b) => b.score - a.score);
 }
 
-// --- Render Product Cards ---
+// --- Render Opportunities (Product Cards) ---
 function loadOpportunities(productsToDisplay = sampleProducts) {
   let container = document.getElementById('opportunities-container');
-  if (!container) {
-    const tabHome = document.getElementById('tab-home') || document.querySelector('main') || document.body;
-    container = document.createElement('div');
-    container.id = 'opportunities-container';
-    container.className = 'space-y-4 mb-20 px-4';
-    tabHome.appendChild(container);
-  }
+  if (!container) return;
 
   container.innerHTML = productsToDisplay.map(p => `
-    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4 transition-all hover:shadow-md">
+    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm transition-all hover:shadow-md">
       <div class="flex justify-between items-start mb-2">
         <span class="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
           ⚡ Sample Opportunity
@@ -154,7 +137,7 @@ function loadOpportunities(productsToDisplay = sampleProducts) {
       <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 space-y-1.5 mb-4 border border-gray-100">
         <div class="flex justify-between">
           <span class="text-gray-500">Source Market:</span>
-          <span class="font-medium">${p.sourceMarket} (₹${p.sourcePrice})</span>
+          <span class="font-medium">${p.sourceMarket} (${p.currency}${p.sourcePrice})</span>
         </div>
         <div class="flex justify-between">
           <span class="text-gray-500">Destination Target:</span>
@@ -164,7 +147,7 @@ function loadOpportunities(productsToDisplay = sampleProducts) {
 
       <div class="flex flex-col gap-2.5 pt-1">
         <button onclick="openAiAdvisorPermission(${p.id})" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
-          Ask AI Advisor
+          Ask AI Advisor (Analysis Permission)
         </button>
         <button onclick="prepareOrder(${p.id})" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm">
           🔒 Proceed to Order / Pi Payment
@@ -176,28 +159,12 @@ function loadOpportunities(productsToDisplay = sampleProducts) {
   `).join('');
 }
 
-// --- Render Compact AI Commerce Assistant Widget ---
+// --- Render AI Commerce Assistant Widget ---
 function renderCommerceAssistant() {
   let assistantContainer = document.getElementById('commerce-assistant-container');
-  if (!assistantContainer) {
-    assistantContainer = document.createElement('div');
-    assistantContainer.id = 'commerce-assistant-container';
-    assistantContainer.className = 'bg-white border border-purple-100 rounded-2xl p-4 shadow-sm my-4 max-w-md mx-auto mx-4';
-    
-    const oppContainer = document.getElementById('opportunities-container');
-    const searchSection = document.getElementById('searchInput');
-    const targetParent = oppContainer?.parentNode || document.getElementById('tab-home') || document.querySelector('main') || document.body;
-    
-    if (searchSection && searchSection.closest('div')) {
-      const searchBoxDiv = searchSection.closest('div');
-      searchBoxDiv.parentNode.insertBefore(assistantContainer, searchBoxDiv);
-    } else if (oppContainer) {
-      oppContainer.parentNode.insertBefore(assistantContainer, oppContainer);
-    } else {
-      targetParent.appendChild(assistantContainer);
-    }
-  }
+  if (!assistantContainer) return;
 
+  assistantContainer.className = 'bg-white border border-purple-100 rounded-2xl p-4 shadow-sm my-4';
   assistantContainer.innerHTML = `
     <div class="flex justify-between items-center mb-2">
       <h3 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
@@ -215,7 +182,7 @@ function renderCommerceAssistant() {
         window.chatHistory.map(msg => `<div><strong>${msg.sender}:</strong>${msg.text}</div>`).join('')}
     </div>
 
-    <!-- Strictly hidden by default using inline display: none -->
+    <!-- Hidden by default -->
     <div id="voice-status" style="display: none;" class="text-[10px] text-red-600 font-semibold mb-2 animate-pulse">🔴 Listening... Speak now.</div>
 
     <div class="flex gap-2 items-center">
@@ -267,7 +234,6 @@ function toggleVoiceRecording() {
       statusEl.style.display = 'none';
       statusEl.classList.add('hidden');
     }
-    alert('Voice recognition error. Please try typing.');
   };
 
   recognition.onend = () => {
@@ -280,25 +246,23 @@ function toggleVoiceRecording() {
   recognition.start();
 }
 
-// --- Handle User Message Submission ---
 function handleUserSubmit() {
   const inputEl = document.getElementById('assistantInput');
   const text = inputEl.value.trim();
   if (!text) return;
 
-  window.chatHistory.push({ sender: 'You', text: text + ' 🎙️' });
+  window.chatHistory.push({ sender: 'You', text: text });
   inputEl.value = '';
 
   parseAndExtractRequirements(text);
 
-  let aiReply = `I understand. Requirement updated: ${window.commerceContext.product || 'Product'}, Qty: ${window.commerceContext.quantity || 'Not specified'}, Source: ${window.commerceContext.sourceMarket || 'Any'}, Destination: ${window.commerceContext.destinationMarket || 'Any'}.`;
+  let aiReply = `Requirement understood. Product: ${window.commerceContext.product || 'General'}, Source: ${window.commerceContext.sourceMarket || 'Any'}, Destination: ${window.commerceContext.destinationMarket || 'Any'}. Matching with verified suppliers...`;
   window.chatHistory.push({ sender: 'AI', text: aiReply });
 
   renderCommerceAssistant();
   renderSmartMatches();
 }
 
-// --- Render Smart Matches ---
 function renderSmartMatches() {
   const container = document.getElementById('smart-matches-results');
   if (!container) return;
@@ -306,14 +270,13 @@ function renderSmartMatches() {
   const matches = findSmartMatches();
   container.innerHTML = `
     <div class="mt-2 pt-2 border-t border-gray-100">
-      <h4 class="font-semibold text-gray-800 text-xs mb-1.5">🎯 Opportunities matching your request</h4>
+      <h4 class="font-semibold text-gray-800 text-xs mb-1.5">🎯 Matching Opportunities</h4>
       <div class="space-y-1.5">
         ${matches.map(m => `
           <div class="bg-white p-2 rounded-lg border border-gray-100 text-[11px] flex justify-between items-center">
             <div>
               <span class="font-bold text-gray-800">${m.product.name}</span>
               <span class="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded ml-1">${m.matchType}</span>
-              <div class="text-gray-500 text-[10px]">Source: ${m.product.sourceMarket} \vert{} Target:${m.product.destinationMarket}</div>
             </div>
             <button onclick="loadOpportunities([sampleProducts.find(p => p.id === ${m.product.id})])" class="bg-purple-600 text-white px-2.5 py-1 rounded text-[10px] font-medium">
               View
@@ -325,7 +288,6 @@ function renderSmartMatches() {
   `;
 }
 
-// --- Reset Request Context ---
 function resetCommerceRequest() {
   window.commerceContext = {
     product: null,
@@ -342,7 +304,7 @@ function resetCommerceRequest() {
   loadOpportunities(sampleProducts);
 }
 
-// --- Product-Specific AI Advisor Flow ---
+// --- Permission-Gated AI Advisor Flow ---
 function openAiAdvisorPermission(productId) {
   const product = sampleProducts.find(p => p.id === productId);
   if (!product) return;
@@ -365,7 +327,7 @@ function renderProductAiAdvisor(product) {
       <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mt-3 shadow-sm">
         <h4 class="font-bold text-gray-800 text-xs mb-1">AI Business Advisor</h4>
         <p class="text-xs text-gray-700 mb-3">
-          Would you like me to provide a detailed analysis of this product (${product.name})?
+          “Would you like me to provide a detailed analysis of this product (${product.name})?”
         </p>
         <div class="flex flex-col gap-2">
           <button onclick="showProductAnalysis(${product.id})" class="w-full bg-purple-600 text-white py-2 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
@@ -385,26 +347,24 @@ function renderProductAiAdvisor(product) {
         <h5 class="font-semibold text-purple-700 text-xs mb-2">Detailed Estimate Analysis (${product.name})</h5>
         
         <div class="text-[11px] text-gray-600 space-y-1 mb-3 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-          <div><strong>Source Price:</strong> ₹${product.sourcePrice}</div>
-          <div><strong>Estimated Additional Cost:</strong> ₹${product.additionalCost}</div>
-          <div><strong>Estimated Total Cost:</strong> ₹${a.totalCost}</div>
-          <div><strong>Potential Selling Price Range:</strong> ${a.sellingRange}</div>
-          <div><strong>Potential Gross Margin:</strong> ${a.grossMargin}</div>
-          <div><strong>Market Information:</strong> ${a.marketInfo}</div>
+          <div><strong>Source Price:</strong> ${product.currency}${product.sourcePrice}</div>
+          <div><strong>Estimated Cost:</strong> ₹${a.totalCost}</div>
+          <div><strong>Selling Price Range:</strong> ${a.sellingRange}</div>
+          <div><strong>Estimated Gross Margin:</strong> ${a.grossMargin}</div>
+          <div><strong>Market Info:</strong> ${a.marketInfo}</div>
           <div><strong>Risk Factors:</strong> ${a.riskFactors}</div>
-          <div><strong>Alternative Options:</strong> ${a.alternatives}</div>
         </div>
 
         <p class="text-[9px] text-gray-400 italic mb-3">
-          "This information is based on available data and estimates. Actual prices, costs and market conditions may change. The final decision is yours."
+          "AI estimates are for reference only. Final commercial decisions rest solely with the user."
         </p>
 
-        <div class="flex flex-col gap-2 pt-2 border-t border-gray-100">
-          <button onclick="prepareOrder(${product.id})" class="w-full bg-purple-600 text-white py-2.5 px-3 rounded-lg font-semibold text-xs hover:bg-purple-700 transition flex items-center justify-center gap-1.5 shadow-sm">
+        <div class="flex flex-col gap-2">
+          <button onclick="prepareOrder(${product.id})" class="w-full bg-purple-600 text-white py-2.5 px-3 rounded-lg font-semibold text-xs hover:bg-purple-700 transition">
             🔒 Proceed to Order / Pi Payment
           </button>
-          <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg font-medium text-xs hover:bg-gray-200 transition">
-            No, Not Now
+          <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg font-medium text-xs">
+            Close
           </button>
         </div>
       </div>
@@ -441,7 +401,7 @@ function calculateMargin() {
   }
 }
 
-// --- Role Selection & Navigation ---
+// --- Navigation & Role Handling ---
 function selectRole(role) {
   localStorage.setItem('piNexusRole', role);
 }
@@ -456,17 +416,23 @@ function switchTab(tabName) {
   const tabs = ['home', 'discover', 'advisor', 'orders', 'profile'];
   tabs.forEach(t => {
     const el = document.getElementById(`tab-${t}`);
-    if (el) {
-      el.classList.toggle('hidden', t !== tabName);
-    }
+    if (el) el.classList.toggle('hidden', t !== tabName);
   });
+}
+
+function setActiveNav(btn) {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('active', 'text-purple-600');
+    item.classList.add('text-gray-600');
+  });
+  btn.classList.add('active', 'text-purple-600');
+  btn.classList.remove('text-gray-600');
 }
 
 // --- Order / Pi Payment Flow ---
 function prepareOrder(productId) {
   const product = sampleProducts.find(p => p.id === productId);
-  const name = product ? product.name : 'Product';
-  alert(`Initiating Pi Testnet payment flow for ${name}. Official Pi Testnet confirmation pending. Note: No real Pi transaction is complete without network confirmation.`);
+  alert(`Initiating official Pi Testnet payment flow for ${product ? product.name : 'product'}. Note: Final transaction confirmation requires authorized Pi wallet interaction.`);
 }
 
 function searchOpportunities() {
@@ -480,7 +446,7 @@ function searchOpportunities() {
   loadOpportunities(filtered);
 }
 
-// --- Initial Execution on DOM Load (Ensuring Home tab visibility & persistent rendering) ---
+// --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
   loadSavedRole();
   switchTab('home');
