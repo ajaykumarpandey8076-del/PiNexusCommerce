@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Phase 1, Phase 2 & Phase 3 Commerce Flow
+// PiNexusCommerce - Phase 3 Bug Fix: Proceed to Order / Pi Payment Flow
 // ==========================================
 
 const sampleProducts = [
@@ -51,7 +51,7 @@ const sampleProducts = [
 
 window.verifiedSupplierDatabase = window.verifiedSupplierDatabase || [];
 
-// --- Persistent Phase 3 Order Records Store ---
+// --- Persistent Orders Store ---
 window.pncOrdersStore = window.pncOrdersStore || [
   {
     orderId: 'PNC-ORD-000001',
@@ -59,20 +59,15 @@ window.pncOrdersStore = window.pncOrdersStore || [
     supplierId: 'SUP-01',
     supplierName: 'ABC Lighting Global (Demo Partner)',
     product: 'Smart LED Bulb',
+    category: 'Electronics',
     quantity: 500,
-    sourceCountry: 'India',
-    destinationCountry: 'USA',
-    agreedPrice: 120,
-    shippingCost: 30,
-    totalAmount: 150,
-    currency: 'Pi (Testnet Demo)',
-    status: 'Order Confirmed',
-    createdAt: '2026-03-20',
-    updatedAt: '2026-03-20',
-    paymentStatus: 'Payment Pending',
-    paymentId: null,
-    transactionId: null,
-    fulfilmentStatus: 'Preparing / Ready for Dispatch'
+    sourceMarket: 'India',
+    sourcePrice: 120,
+    currency: '₹',
+    destinationMarket: 'USA',
+    status: 'Order Request Created',
+    createdAt: new Date().toISOString().split('T')[0],
+    paymentStatus: 'Pi Payment Not Available Yet'
   }
 ];
 
@@ -90,7 +85,6 @@ window.commerceRequirement = window.commerceRequirement || {
 window.chatHistory = window.chatHistory || [];
 window.activeAiProduct = window.activeAiProduct || null;
 window.matchingSearchResults = window.matchingSearchResults || null;
-window.activeOrderView = window.activeOrderView || null;
 
 // --- Phase 1: Intent Extraction ---
 function parseAndExtractRequirements(text) {
@@ -175,7 +169,7 @@ function updateAssistantUI() {
 
     summaryBox.innerHTML = `
       <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 my-2 text-xs">
-        <p class="font-bold text-purple-900 mb-1">✅ Requirement Ready (Demo/Test Flow)</p>
+        <p class="font-bold text-purple-900 mb-1">✅ Requirement Ready</p>
         <div class="text-gray-700 space-y-0.5 text-[11px] mb-2">
           <div><strong>Product:</strong> ${req.product || 'N/A'}</div>
           <div><strong>Quantity:</strong> ${req.quantity || 'N/A'}</div>
@@ -274,7 +268,7 @@ function triggerPhase2Matching() {
 
   setTimeout(() => {
     window.matchingSearchResults = executeSupplierMatchingEngine(window.commerceRequirement);
-    window.chatHistory.push({ sender: 'AI', text: 'No verified supplier match found from current sources. (Demo flow available via Today\'s Opportunities).' });
+    window.chatHistory.push({ sender: 'AI', text: 'No verified supplier match found from current sources.' });
     updateAssistantUI();
   }, 600);
 }
@@ -327,47 +321,63 @@ function toggleVoiceRecording() {
   recognition.start();
 }
 
-// --- Phase 3: Real-World Commerce Flow & Enquiry Modal / Actions ---
+// --- Phase 3 Bug Fix: Proceed to Order / Pi Payment Handler ---
 function prepareOrder(productId) {
-  const product = sampleProducts.find(p => p.id === productId);
-  if (!product) return;
+  try {
+    const product = sampleProducts.find(p => p.id === productId);
+    if (!product) {
+      alert("Product opportunity not found.");
+      return;
+    }
 
-  const confirmEnquiry = confirm(`[Demo/Test Flow] Send Enquiry for ${product.name} (${product.supplierName})?\n\nQuantity: 500 units\nSource: ${product.sourceMarket}\nDestination: ${product.destinationMarket}`);
-  
-  if (confirmEnquiry) {
-    // Create new demo order record in store
+    // Generate unique Order ID
     const newOrderId = 'PNC-ORD-' + Math.floor(100000 + Math.random() * 900000);
+    
+    // Create new order record
     const newOrder = {
       orderId: newOrderId,
       buyerId: 'BUYER-DEMO-01',
       supplierId: product.supplierId,
       supplierName: product.supplierName,
       product: product.name,
-      quantity: 500,
-      sourceCountry: product.sourceMarket,
-      destinationCountry: product.destinationMarket,
-      agreedPrice: product.sourcePrice,
-      shippingCost: 30,
-      totalAmount: product.sourcePrice * 500 + 30,
-      currency: 'Pi (Testnet Demo)',
-      status: 'Order Requested',
+      category: product.category,
+      quantity: 500, // Default baseline sample quantity
+      sourceMarket: product.sourceMarket,
+      sourcePrice: product.sourcePrice,
+      currency: product.currency,
+      destinationMarket: product.destinationMarket,
+      status: 'Order Request Created',
       createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0],
-      paymentStatus: 'Payment Not Started',
-      paymentId: null,
-      transactionId: null,
-      fulfilmentStatus: 'Preparing'
+      paymentStatus: 'Pi Payment Not Available Yet'
     };
 
+    // Save to persistent orders store
     window.pncOrdersStore.unshift(newOrder);
-    alert(`Enquiry & Order Request successfully created!\n\nOrder ID: ${newOrderId}\nStatus: Order Requested\n\nRedirecting you to My Orders to proceed with Pi Testnet Payment.`);
-    
-    switchTab('orders');
-    renderOrdersScreen();
+
+    // Open Order Request Details modal/alert preview
+    const actionChoice = confirm(
+      `📦 ORDER REQUEST CREATED\n\n` +
+      `Order ID: ${newOrderId}\n` +
+      `Product: ${product.name}\n` +
+      `Category: ${product.category}\n` +
+      `Source: ${product.sourceMarket} (${product.currency}${product.sourcePrice})\n` +
+      `Destination: ${product.destinationMarket}\n` +
+      `Status: Order Request Created\n` +
+      `Payment Status: Pi Payment Not Available Yet\n\n` +
+      `Click OK to view this order in your Orders dashboard or Cancel to stay here.`
+    );
+
+    if (actionChoice) {
+      switchTab('orders');
+      renderOrdersScreen();
+    }
+  } catch (err) {
+    console.error("Order creation error:", err);
+    alert("An error occurred while creating the order request. Please try again.");
   }
 }
 
-// --- Render My Orders Screen (Phase 3) ---
+// --- Render Orders Screen ---
 function renderOrdersScreen() {
   const ordersContainer = document.getElementById('orders-content-container');
   if (!ordersContainer) return;
@@ -377,7 +387,7 @@ function renderOrdersScreen() {
       <div class="bg-white border border-gray-200 rounded-2xl p-6 text-center shadow-sm">
         <span class="text-2xl mb-2 block">📦</span>
         <h3 class="font-bold text-sm text-gray-900 mb-1">No Active Orders</h3>
-        <p class="text-xs text-gray-600">Select an opportunity from Home and initiate an enquiry to start real-world commerce flow.</p>
+        <p class="text-xs text-gray-600">Tap "Proceed to Order / Pi Payment" on any opportunity card to create an order request.</p>
       </div>
     `;
     return;
@@ -387,58 +397,24 @@ function renderOrdersScreen() {
     <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-3 mb-4">
       <div class="flex justify-between items-center border-b border-gray-100 pb-2">
         <span class="font-bold text-purple-700 text-xs">${o.orderId}</span>
-        <span class="text-[10px] bg-purple-50 text-purple-800 px-2 py-0.5 rounded-full font-medium">Testnet Environment</span>
+        <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">${o.createdAt}</span>
       </div>
 
       <div class="text-xs space-y-1 text-gray-700">
-        <div><strong>Product:</strong> ${o.product} (${o.quantity} units)</div>
-        <div><strong>Supplier:</strong> ${o.supplierName}</div>
-        <div><strong>Destination:</strong> ${o.destinationCountry}</div>
-        <div><strong>Order Status:</strong> <span class="font-semibold text-amber-700">${o.status}</span></div>
-        <div><strong>Payment Status:</strong> <span class="font-semibold text-purple-800">${o.paymentStatus}</span></div>
-        <div><strong>Fulfilment:</strong> ${o.fulfilmentStatus}</div>
+        <div><strong>Product:</strong> ${o.product} (${o.quantity || 500} units)</div>
+        <div><strong>Source:</strong> ${o.sourceMarket} (${o.currency}${o.sourcePrice})</div>
+        <div><strong>Destination:</strong> ${o.destinationMarket}</div>
+        <div><strong>Status:</strong> <span class="font-semibold text-purple-700">${o.status}</span></div>
+        <div><strong>Payment:</strong> <span class="font-semibold text-amber-700">${o.paymentStatus}</span></div>
       </div>
 
-      <div class="flex gap-2 pt-1">
-        <button onclick="openOrderDetails('${o.orderId}')" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-xl text-xs font-medium transition">
-          View Timeline
-        </button>
-        <button onclick="initiatePiPayment('${o.orderId}')" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-xl text-xs font-medium transition shadow-sm">
-          🔒 Pay with Pi
+      <div class="pt-1">
+        <button onclick="alert('Order Details for ${o.orderId}:\\nProduct: ${o.product}\\nDestination: ${o.destinationMarket}\\nStatus: ${o.status}\\n\\nNote: Pi Payment is currently unavailable for this sample order.')" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-xl text-xs font-medium transition">
+          View Order Details
         </button>
       </div>
     </div>
   `).join('');
-}
-
-// --- Order Details / Timeline Modal ---
-function openOrderDetails(orderId) {
-  const order = window.pncOrdersStore.find(o => o.orderId === orderId);
-  if (!order) return;
-
-  alert(`Order Timeline (${order.orderId}):\n\n1. Requirement Confirmed ✓\n2. Supplier Matched (${order.supplierName}) ✓\n3. Enquiry Sent ✓\n4. Supplier Response Received ✓\n5. Order Requested & Confirmed ✓\n6. Payment Status: ${order.paymentStatus}\n7. Fulfilment: ${order.fulfilmentStatus}`);
-}
-
-// --- Pi Payment Flow (Phase 3) ---
-function initiatePiPayment(orderId) {
-  const order = window.pncOrdersStore.find(o => o.orderId === orderId);
-  if (!order) return;
-
-  const confirmPay = confirm(`[Pi Testnet Environment]\n\nInitiating secure payment for Order ${order.orderId}\nTotal Amount: ${order.totalAmount} ${order.currency}\n\nDo you want to proceed with official Pi Wallet authorization?`);
-  
-  if (confirmPay) {
-    order.paymentStatus = 'Payment Submitted (Pending Verification)';
-    order.status = 'Fulfilment In Progress';
-    renderOrdersScreen();
-    
-    setTimeout(() => {
-      order.paymentStatus = 'Payment Confirmed';
-      order.status = 'Fulfilment In Progress';
-      order.fulfilmentStatus = 'In Transit / Dispatched';
-      alert(`Pi Testnet Payment Verified Successfully!\n\nTransaction ID: TXN-PI-${Math.floor(10000000 + Math.random() * 90000000)}\nOrder status updated to Fulfilment In Progress.`);
-      renderOrdersScreen();
-    }, 1500);
-  }
 }
 
 // --- AI Advisor Permission Flow ---
@@ -488,4 +464,59 @@ function renderProductAiAdvisor(product) {
           <div><strong>Risk Factors:</strong> ${a.riskFactors}</div>
         </div>
         <p class="text-[9px] text-gray-400 italic mb-3">"AI estimates are for reference only. Final commercial decisions rest solely with the user."</p>
-        <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3
+        <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg font-medium text-xs">Close</button>
+      </div>
+    `;
+  }
+}
+
+function showProductAnalysis(productId) {
+  window.activeAiProduct = { id: productId, state: 'analysis' };
+  renderProductAiAdvisor(sampleProducts.find(p => p.id === productId));
+}
+
+function closeProductAi(productId) {
+  window.activeAiProduct = null;
+  const targetBox = document.getElementById(`ai-advisor-box-${productId}`);
+  if (targetBox) targetBox.innerHTML = '';
+}
+
+// --- Navigation & Role Handling ---
+function selectRole(role) {
+  localStorage.setItem('piNexusRole', role);
+}
+
+function loadSavedRole() {
+  const saved = localStorage.getItem('piNexusRole') || 'Buyer';
+  const el = document.getElementById('roleSelect');
+  if (el) el.value = saved;
+}
+
+function switchTab(tabName) {
+  ['home', 'discover', 'advisor', 'orders', 'profile'].forEach(t => {
+    const el = document.getElementById(`tab-${t}`);
+    if (el) el.classList.toggle('hidden', t !== tabName);
+  });
+  if (tabName === 'orders') {
+    renderOrdersScreen();
+  }
+}
+
+function setActiveNav(btn) {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('active', 'text-purple-600');
+    item.classList.add('text-gray-600');
+  });
+  btn.classList.add('active', 'text-purple-600');
+  btn.classList.remove('text-gray-600');
+}
+
+function searchOpportunities() {}
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    loadSavedRole();
+    switchTab('home');
+    updateAssistantUI();
+  } catch (err
