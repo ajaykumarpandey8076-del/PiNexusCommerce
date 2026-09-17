@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Complete app.js (Cleaned)
+// PiNexusCommerce - Complete Restored app.js
 // ==========================================
 
 const sampleProducts = [
@@ -35,7 +35,48 @@ const sampleProducts = [
   }
 ];
 
-// --- Margin Calculator Logic ---
+// --- Search & Opportunities Rendering ---
+function loadOpportunities(productsToDisplay = sampleProducts) {
+  const container = document.getElementById('opportunities-container');
+  if (!container) return;
+
+  container.innerHTML = productsToDisplay.map(p => `
+    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm mb-4">
+      <div class="flex justify-between items-start mb-2">
+        <h3 class="font-bold text-gray-800">${p.name}</h3>
+        <span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">${p.category}</span>
+      </div>
+      <p class="text-xs text-gray-600 mb-2">${p.description}</p>
+      <div class="text-xs text-gray-500 space-y-1 mb-3">
+        <div><strong>Source Market:</strong> ${p.sourceMarket} (Price: ${p.currency}${p.sourcePrice})</div>
+        <div><strong>Destination Target:</strong> ${p.destinationMarket}</div>
+        <div><strong>Supplier ID:</strong> ${p.supplierId}</div>
+        <div><strong>Selling Price:</strong> ${p.currency}${p.sellingPrice}</div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="triggerAIConsent(${p.id})" class="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
+          Ask AI Advisor
+        </button>
+        <button onclick="prepareOrder(${p.id})" class="flex-1 bg-gray-100 text-gray-700 py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
+          Proceed to Order / Pi Payment
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function searchOpportunities() {
+  const query = document.getElementById('searchInput')?.value.toLowerCase() || '';
+  const filtered = sampleProducts.filter(p => 
+    p.name.toLowerCase().includes(query) || 
+    p.category.toLowerCase().includes(query) ||
+    p.sourceMarket.toLowerCase().includes(query) ||
+    p.destinationMarket.toLowerCase().includes(query)
+  );
+  loadOpportunities(filtered);
+}
+
+// --- Margin Calculator ---
 function calculateMargin() {
   const src = parseFloat(document.getElementById('sourcePrice')?.value) || 0;
   const add = parseFloat(document.getElementById('additionalCost')?.value) || 0;
@@ -51,46 +92,61 @@ function calculateMargin() {
   }
 }
 
-// --- Role Selection & Navigation Helpers ---
+// --- Role Selection & Navigation ---
 function selectRole(role) {
   localStorage.setItem('piNexusRole', role);
-}
-
-function loadSavedRole() {
-  const saved = localStorage.getItem('piNexusRole');
-  if (saved) {
-    const el = document.getElementById('roleSelect');
-    if (el) el.value = saved;
+  const descEl = document.getElementById('roleDescription');
+  if (descEl) {
+    descEl.innerText = `Current Role: ${role}`;
   }
 }
 
+function loadSavedRole() {
+  const saved = localStorage.getItem('piNexusRole') || 'Buyer';
+  const el = document.getElementById('roleSelect');
+  if (el) el.value = saved;
+  selectRole(saved);
+}
+
 function switchTab(tabName) {
-  // Tab switching logic placeholder
-  console.log('Switched to tab:', tabName);
+  const tabs = ['home', 'discover', 'advisor', 'orders', 'profile'];
+  tabs.forEach(t => {
+    const el = document.getElementById(`tab-${t}`);
+    if (el) {
+      el.classList.toggle('hidden', t !== tabName);
+    }
+  });
+}
+
+// --- Order / Pi Payment Flow ---
+function prepareOrder(productId) {
+  const product = sampleProducts.find(p => p.id === productId);
+  if (product) {
+    alert(`Initiating Pi Testnet payment flow for ${product.name}. Official Pi Testnet confirmation pending.`);
+  } else {
+    alert('Initiating Pi Testnet payment flow.');
+  }
+}
+
+function openOrderFlow() {
+  alert('Opening Pi payment & order flow...');
 }
 
 // ==========================================
-// AI Business Advisor State Machine (Clean)
+// AI Business Advisor State Machine (Isolated)
 // ==========================================
 
-window.aiAdvisorState = window.aiAdvisorState || 'permission'; // 'permission' or 'analysis'
+window.aiAdvisorState = window.aiAdvisorState || 'permission';
 
 function renderAiAdvisor() {
-  const mainArea = document.querySelector('main') || document.body;
-  
-  // Clear any existing legacy containers to prevent duplication
-  const existingContainers = document.querySelectorAll('#ai-advisor-container, .ai-advisor-wrapper');
-  existingContainers.forEach(el => el.remove());
-
-  // Create unified container
-  const container = document.createElement('div');
-  container.id = 'ai-advisor-container';
-  container.className = 'p-4 max-w-md mx-auto bg-white min-h-screen pb-20';
+  // Target ONLY the dedicated AI Advisor container element in the DOM
+  const container = document.getElementById('ai-advisor-container');
+  if (!container) return; // Never overwrite body or main!
 
   if (window.aiAdvisorState === 'permission') {
     container.innerHTML = `
       <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 shadow-sm mb-4">
-        <h2 class="text-xl font-bold text-gray-800 mb-2">AI Business Advisor</h2>
+        <h3 class="font-bold text-gray-800 mb-2">AI Business Advisor</h3>
         <p class="text-sm text-gray-700 mb-3">
           Would you like the AI Advisor to generate a detailed commercial and estimate analysis for your business products?
         </p>
@@ -102,8 +158,8 @@ function renderAiAdvisor() {
   } else if (window.aiAdvisorState === 'analysis') {
     container.innerHTML = `
       <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-md mt-4 transition-all">
-        <h2 class="text-xl font-bold text-gray-800 mb-2">AI Business Advisor</h2>
-        <h3 class="font-semibold text-gray-800 mb-2">Detailed Estimate Analysis</h3>
+        <h3 class="font-bold text-gray-800 mb-2">AI Business Advisor</h3>
+        <h4 class="font-semibold text-gray-800 mb-2">Detailed Estimate Analysis</h4>
         <p class="text-xs text-gray-600 mb-4">
           Based on current market estimates and your product margins, here is the breakdown of your commercial performance and pricing viability.
         </p>
@@ -122,9 +178,7 @@ function renderAiAdvisor() {
     `;
   }
 
-  mainArea.appendChild(container);
-
-  // Bind Event Handlers
+  // Bind Event Handlers safely
   const yesBtn = document.getElementById('yes-analysis-btn');
   if (yesBtn) {
     yesBtn.onclick = () => {
@@ -136,11 +190,7 @@ function renderAiAdvisor() {
   const proceedBtn = document.getElementById('proceed-payment-btn');
   if (proceedBtn) {
     proceedBtn.onclick = () => {
-      if (typeof openOrderFlow === 'function') {
-        openOrderFlow();
-      } else {
-        alert('Opening Pi payment & order flow...');
-      }
+      openOrderFlow();
     };
   }
 
@@ -153,8 +203,18 @@ function renderAiAdvisor() {
   }
 }
 
+function triggerAIConsent(productId) {
+  window.aiAdvisorState = 'analysis';
+  renderAiAdvisor();
+  const container = document.getElementById('ai-advisor-container');
+  if (container) {
+    container.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
 // Initial Load Handler
 document.addEventListener('DOMContentLoaded', () => {
   loadSavedRole();
+  loadOpportunities();
   renderAiAdvisor();
 });
