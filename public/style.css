@@ -338,6 +338,70 @@ nav path,
   stroke: currentColor !important;
   opacity: 1 !important;
 }
+/* ==========================================
+   PiNexusCommerce - Final High-Specificity Bottom Nav Fix
+   ========================================= */
+
+/* Ensure enough bottom padding so content never gets covered */
+body {
+  padding-bottom: 120px !important;
+}
+
+/* Force solid background, shadow, and visibility on the navigation bar */
+nav, 
+.fixed-bottom-nav, 
+footer, 
+#bottom-nav,
+div[class*="fixed bottom"],
+div[class*="bottom-0"] {
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  border-top: 1px solid #cbd5e1 !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15) !important;
+  z-index: 9999 !important;
+}
+
+/* Override Tailwind text opacity variables and force dark slate text across all nav children */
+nav *, 
+.fixed-bottom-nav *, 
+footer *, 
+#bottom-nav *,
+div[class*="fixed bottom"] *,
+div[class*="bottom-0"] * {
+  --tw-text-opacity: 1 !important;
+  --tw-bg-opacity: 1 !important;
+  color: #1e293b !important; /* Sharp, high-contrast dark slate */
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Distinct active state for Home or current tab */
+nav a.active *, 
+nav button.active *, 
+.nav-item.active *, 
+nav span.active *,
+.active span,
+.active svg,
+[aria-current="page"] * {
+  color: #6366f1 !important; /* Vibrant Pi purple-indigo */
+}
+
+/* Force SVG paths, strokes, and icons to inherit solid color and full visibility */
+nav svg, 
+.fixed-bottom-nav svg, 
+#bottom-nav svg,
+nav path, 
+.fixed-bottom-nav path,
+nav i,
+.fixed-bottom-nav i {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+}
+
 
 
 
