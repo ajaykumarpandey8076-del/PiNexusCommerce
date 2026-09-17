@@ -280,6 +280,65 @@ nav img,
   stroke: currentColor !important;
   opacity: 1 !important;
 }
+/* ==========================================
+   PiNexusCommerce - Final Bulletproof Bottom Nav Debug CSS
+   ========================================= */
+
+/* Ensure enough bottom padding so content never gets covered */
+body {
+  padding-bottom: 110px !important;
+}
+
+/* Force absolute solid background and no transparency on any nav wrapper */
+nav, 
+.fixed-bottom-nav, 
+footer, 
+#bottom-nav,
+div[class*="nav"], 
+div[class*="bottom"] {
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  border-top: 1px solid #94a3b8 !important; /* Stronger border contrast */
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Completely override any faint text/icon color or low opacity across ALL descendants */
+nav *, 
+.fixed-bottom-nav *, 
+footer *, 
+#bottom-nav *,
+div[class*="nav"] *, 
+div[class*="bottom"] * {
+  color: #0f172a !important; /* Deep dark slate for sharp readability */
+  opacity: 1 !important;
+  visibility: visible !important;
+  filter: none !important;
+}
+
+/* Force active item (Home or selected tab) to pop out distinctly */
+nav a.active *, 
+nav button.active *, 
+.nav-item.active *, 
+nav span.active *,
+.active span,
+.active svg {
+  color: #6366f1 !important; /* Vibrant Pi purple-indigo */
+}
+
+/* Force SVG paths, strokes, and icons to be fully opaque and solid */
+nav svg, 
+.fixed-bottom-nav svg, 
+#bottom-nav svg,
+nav path, 
+.fixed-bottom-nav path {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+}
+
 
 
 
