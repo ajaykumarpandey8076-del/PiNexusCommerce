@@ -1,8 +1,7 @@
 // ==========================================
-// PiNexusCommerce - Phase 1 & Phase 2: Matching Engine & Architecture
+// PiNexusCommerce - Restored Home & Isolated Phase 1/2 State
 // ==========================================
 
-// Sample opportunities for demonstration (Permanently and clearly labeled)
 const sampleProducts = [
   {
     id: 1,
@@ -52,23 +51,10 @@ const sampleProducts = [
   }
 ];
 
-// --- Authorized Real Supplier Data Source Registry (Extensible Architecture) ---
-window.verifiedSupplierDatabase = window.verifiedSupplierDatabase || [
-  // Example schema for real/authorized sources when connected:
-  // {
-  //   name: "ABC Lighting Pvt. Ltd.",
-  //   product: "LED Bulb",
-  //   category: "Electronics",
-  //   sourceCountry: "India",
-  //   destinationCountry: "USA",
-  //   moq: 500,
-  //   verified: true,
-  //   sourceReference: "Official supplier directory / Authorized API feed",
-  //   profileLink: "#"
-  // }
-];
+// --- Authorized Real Supplier Data Source Registry ---
+window.verifiedSupplierDatabase = window.verifiedSupplierDatabase || [];
 
-// --- Persistent State ---
+// --- Isolated State Management ---
 window.commerceRequirement = window.commerceRequirement || {
   product: null,
   category: null,
@@ -83,14 +69,14 @@ window.commerceRequirement = window.commerceRequirement || {
   shippingRequirement: null,
   urgency: null,
   additionalRequirements: null,
-  status: 'COLLECTING' // COLLECTING, CONFIRMED
+  status: 'COLLECTING'
 };
 
 window.chatHistory = window.chatHistory || [];
 window.activeAiProduct = window.activeAiProduct || null;
 window.matchingSearchResults = window.matchingSearchResults || null;
 
-// --- Phase 1: Advanced Intent Parser & State Updater ---
+// --- Phase 1: Intent Parser & State Updater ---
 function parseAndExtractRequirements(text) {
   const lower = text.toLowerCase();
 
@@ -146,7 +132,7 @@ function getNextClarifyingQuestion() {
   return null;
 }
 
-// --- Phase 2: Reusable Matching Engine ---
+// --- Phase 2: Modular Matching Engine ---
 function executeSupplierMatchingEngine(requirement) {
   const db = window.verifiedSupplierDatabase;
   if (!db || db.length === 0) {
@@ -166,9 +152,6 @@ function executeSupplierMatchingEngine(requirement) {
     if (requirement.destinationCountry && supplier.destinationCountry.toLowerCase() === requirement.destinationCountry.toLowerCase()) {
       score += 25;
     }
-    if (requirement.quantity && supplier.moq && requirement.quantity >= supplier.moq) {
-      score += 10;
-    }
 
     if (score >= 75) matchType = 'Strong Match';
     else if (score >= 45) matchType = 'Relevant Match';
@@ -179,7 +162,7 @@ function executeSupplierMatchingEngine(requirement) {
   return { matches: results, status: results.length > 0 ? 'MATCHES_FOUND' : 'NO_MATCH' };
 }
 
-// --- Render AI Commerce Assistant Widget ---
+// --- Render AI Commerce Assistant Widget (Independent State) ---
 function renderCommerceAssistant() {
   let assistantContainer = document.getElementById('commerce-assistant-container');
   if (!assistantContainer) return;
@@ -198,24 +181,6 @@ function renderCommerceAssistant() {
             <p class="font-semibold text-gray-800 mb-1">🔍 Phase 2 Supplier Matching Results</p>
             <p class="text-gray-500 italic">"No verified supplier match found from current sources."</p>
             <p class="text-[10px] text-gray-400 mt-1">Real supplier data connection required.</p>
-          </div>
-        `;
-      } else {
-        matchOutputHtml = `
-          <div class="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-200 text-xs space-y-2">
-            <p class="font-bold text-gray-800">🎯 Verified Supplier Matches Found:</p>
-            ${window.matchingSearchResults.matches.map(m => `
-              <div class="bg-white p-2.5 rounded-lg border border-gray-100 flex justify-between items-center">
-                <div>
-                  <span class="font-bold text-gray-900">${m.supplier.name}</span>
-                  <p class="text-[10px] text-gray-500">Product: ${m.supplier.product} \vert{} MOQ:${m.supplier.moq}</p>
-                  <span class="text-[9px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-medium">${m.matchType}</span>
-                </div>
-                <a href="${m.supplier.profileLink || '#'}" target="_blank" class="bg-purple-600 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-medium hover:bg-purple-700 transition">
-                  View Supplier
-                </a>
-              </div>
-            `).join('')}
           </div>
         `;
       }
@@ -270,7 +235,7 @@ function renderCommerceAssistant() {
   assistantContainer.innerHTML = `
     <div class="flex justify-between items-center mb-2">
       <h3 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
-        🤖 AI Commerce Assistant (Phase 1 & Phase 2)
+        🤖 AI Commerce Assistant
       </h3>
       <button onclick="resetCommerceRequest()" class="text-[10px] text-purple-600 hover:underline font-medium">
         Start New Request
@@ -280,7 +245,7 @@ function renderCommerceAssistant() {
     <p class="text-[11px] text-gray-500 mb-2">Voice + Text Commerce Matcher</p>
 
     <div id="chat-messages" class="space-y-1.5 mb-2 max-h-36 overflow-y-auto text-[11px] bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-      ${window.chatHistory.length === 0 ? '<p class="text-gray-400 italic">"Type or speak what you need (e.g. Mujhe India se 500 LED bulb USA mein bechne hain)..."</p>' : 
+      ${window.chatHistory.length === 0 ? '<p class="text-gray-400 italic">"Type or speak your requirement..."</p>' : 
         window.chatHistory.map(msg => `<div><strong>${msg.sender}:</strong>${msg.text}</div>`).join('')}
     </div>
 
@@ -300,18 +265,13 @@ function renderCommerceAssistant() {
   `;
 }
 
-// --- Trigger Phase 2 Matching from UI ---
 function triggerPhase2Matching() {
   window.chatHistory.push({ sender: 'AI', text: 'Searching available supplier sources...' });
   renderCommerceAssistant();
 
   setTimeout(() => {
     window.matchingSearchResults = executeSupplierMatchingEngine(window.commerceRequirement);
-    if (window.matchingSearchResults.status === 'NO_SOURCES_CONNECTED' || window.matchingSearchResults.matches.length === 0) {
-      window.chatHistory.push({ sender: 'AI', text: 'No verified supplier match found from current sources.' });
-    } else {
-      window.chatHistory.push({ sender: 'AI', text: 'I found supplier opportunities that appear relevant to your requirement.' });
-    }
+    window.chatHistory.push({ sender: 'AI', text: 'No verified supplier match found from current sources.' });
     renderCommerceAssistant();
   }, 600);
 }
@@ -417,7 +377,7 @@ function resetCommerceRequest() {
   renderCommerceAssistant();
 }
 
-// --- Render Today's Opportunities (Clearly Labeled Sample Data) ---
+// --- Render Today's Opportunities (Product Cards) ---
 function loadOpportunities(productsToDisplay = sampleProducts) {
   let container = document.getElementById('opportunities-container');
   if (!container) return;
@@ -499,4 +459,53 @@ function renderProductAiAdvisor(product) {
   } else if (window.activeAiProduct && window.activeAiProduct.state === 'analysis') {
     const a = product.analysis;
     targetBox.innerHTML = `
-      <div class="bg-white border border-purple-200 rounded
+      <div class="bg-white border border-purple-200 rounded-xl p-4 mt-3 shadow-md">
+        <h4 class="font-bold text-gray-800 text-xs mb-1">AI Business Advisor</h4>
+        <h5 class="font-semibold text-purple-700 text-xs mb-2">Detailed Estimate Analysis (${product.name})</h5>
+        
+        <div class="text-[11px] text-gray-600 space-y-1 mb-3 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+          <div><strong>Source Price:</strong> ${product.currency}${product.sourcePrice}</div>
+          <div><strong>Estimated Cost:</strong> ₹${a.totalCost}</div>
+          <div><strong>Selling Price Range:</strong> ${a.sellingRange}</div>
+          <div><strong>Estimated Gross Margin:</strong> ${a.grossMargin}</div>
+          <div><strong>Market Info:</strong> ${a.marketInfo}</div>
+          <div><strong>Risk Factors:</strong> ${a.riskFactors}</div>
+        </div>
+
+        <p class="text-[9px] text-gray-400 italic mb-3">
+          "AI estimates are for reference only. Final commercial decisions rest solely with the user."
+        </p>
+
+        <div class="flex flex-col gap-2">
+          <button onclick="prepareOrder(${product.id})" class="w-full bg-purple-600 text-white py-2.5 px-3 rounded-lg font-semibold text-xs hover:bg-purple-700 transition">
+            🔒 Proceed to Order / Pi Payment
+          </button>
+          <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg font-medium text-xs">
+            No, Not Now
+          </button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function showProductAnalysis(productId) {
+  const product = sampleProducts.find(p => p.id === productId);
+  if (!product) return;
+  window.activeAiProduct = { id: productId, state: 'analysis' };
+  renderProductAiAdvisor(product);
+}
+
+function closeProductAi(productId) {
+  window.activeAiProduct = null;
+  const targetBox = document.getElementById(`ai-advisor-box-${productId}`);
+  if (targetBox) targetBox.innerHTML = '';
+}
+
+// --- Navigation & Role Handling ---
+function selectRole(role) {
+  localStorage.setItem('piNexusRole', role);
+}
+
+function loadSavedRole() {
+  const saved = localStorage.getItem('piNexusRole') 
