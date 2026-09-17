@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Phase 1: AI Commerce Intelligence
+// PiNexusCommerce - Restored Stable UI & Phase 1 AI Intelligence
 // ==========================================
 
 const sampleProducts = [
@@ -21,9 +21,9 @@ const sampleProducts = [
       totalCost: 150,
       sellingRange: '₹280–₹322',
       grossMargin: '₹130 (46.4%)',
-      marketInfo: 'High demand observed in USA retail channels.',
+      marketInfo: 'High demand observed in USA.',
       riskFactors: 'Shipping/customs clearance and currency fluctuation variance.',
-      alternatives: 'Alternate regional suppliers available upon verification.'
+      alternatives: 'Alternate regional suppliers available on verification.'
     }
   },
   {
@@ -46,12 +46,12 @@ const sampleProducts = [
       grossMargin: '₹80 (44.4%)',
       marketInfo: 'High demand observed in UAE retail markets.',
       riskFactors: 'Logistics and local distribution compliance.',
-      alternatives: 'Alternate textile suppliers available upon verification.'
+      alternatives: 'Alternate textile suppliers available on verification.'
     }
   }
 ];
 
-// --- Phase 1: Persistent Commerce Requirement State ---
+// --- Persistent State ---
 window.commerceRequirement = window.commerceRequirement || {
   product: null,
   category: null,
@@ -72,61 +72,53 @@ window.commerceRequirement = window.commerceRequirement || {
 window.chatHistory = window.chatHistory || [];
 window.activeAiProduct = window.activeAiProduct || null;
 
-// --- Advanced Intent Parser & Multi-Turn State Accumulator ---
+// --- Phase 1: Advanced Intent Parser & State Updater ---
 function parseAndExtractRequirements(text) {
   const lower = text.toLowerCase();
 
-  // 1. Quantity & Unit Extraction (handles updates like "500 nahi 1000 chahiye")
+  // Quantity updates/extraction
   const qtyMatch = text.match(/\b(\d+)\s*(pieces|units|pcs|bulb|bulbs|bag|bags|shoes|pairs)?/i);
   if (qtyMatch && qtyMatch[1]) {
     window.commerceRequirement.quantity = parseInt(qtyMatch[1], 10);
   }
 
-  // 2. Product / Category Extraction
+  // Product / Category
   if (lower.includes('bulb') || lower.includes('led')) {
     window.commerceRequirement.product = 'LED Bulb';
     window.commerceRequirement.category = 'Electronics';
   } else if (lower.includes('bag') || lower.includes('cotton') || lower.includes('tote')) {
-    window.commerceRequirement.product = 'Cotton Bags';
+    window.commerceRequirement.product = 'Cotton Tote Bag';
     window.commerceRequirement.category = 'Clothing';
   } else if (lower.includes('shoe') || lower.includes('shoes')) {
     window.commerceRequirement.product = 'Shoes';
     window.commerceRequirement.category = 'Footwear';
-  } else if (lower.includes('electronics')) {
-    window.commerceRequirement.category = 'Electronics';
   }
 
-  // 3. Source Country Extraction
+  // Source Country
   if (lower.includes('india') || lower.includes('se india') || lower.includes('from india')) {
     window.commerceRequirement.sourceCountry = 'India';
   }
 
-  // 4. Destination Country / Market Extraction (handles modifications like "usa nahi uae mein")
+  // Destination Country (Handles modifications like "USA nahi UAE mein")
   if (lower.includes('uae') || lower.includes('dubai') || lower.includes('mein uae')) {
     window.commerceRequirement.destinationCountry = 'UAE';
   } else if (lower.includes('usa') || lower.includes('america') || lower.includes('mein usa')) {
     window.commerceRequirement.destinationCountry = 'USA';
   }
 
-  // 5. Purpose Extraction
+  // Purpose
   if (lower.includes('bechne') || lower.includes('sell') || lower.includes('resale') || lower.includes('business')) {
-    window.commerceRequirement.purpose = 'Resale / Business';
+    window.commerceRequirement.purpose = 'Resale';
   } else if (lower.includes('wholesale') || lower.includes('saste rate')) {
     window.commerceRequirement.purpose = 'Wholesale Sourcing';
   } else if (lower.includes('personal')) {
     window.commerceRequirement.purpose = 'Personal Purchase';
-  }
-
-  // 6. Price / Budget Preference
-  if (lower.includes('saste') || lower.includes('cheap') || lower.includes('low cost')) {
-    window.commerceRequirement.targetPrice = 'Cost-effective / Low Price';
   }
 }
 
 // --- Progressive Missing Information Evaluator ---
 function getNextClarifyingQuestion() {
   const req = window.commerceRequirement;
-  
   if (!req.product && !req.category) {
     return "आप किस product या category की तलाश कर रहे हैं?";
   }
@@ -134,30 +126,26 @@ function getNextClarifyingQuestion() {
     return `आपको ${req.product || 'इस item'} की कितनी quantity चाहिए?`;
   }
   if (!req.sourceCountry) {
-    return `आप ${req.product || 'इस product'} को किस country से source (purchase) करना चाहते हैं?`;
+    return `आप इन bulbs/items को किस country से source करना चाहते हैं?`;
   }
   if (!req.destinationCountry) {
     return `आप इसे किस country या market में sell या use करना चाहते हैं?`;
   }
-  if (!req.purpose) {
-    return "यह purchase किस उद्देश्य के लिए है (जैसे resale, wholesale sourcing, या personal use)?";
-  }
-  
-  return null; // All core info collected
+  return null;
 }
 
-// --- Render AI Commerce Assistant Widget ---
+// --- Render AI Commerce Assistant Widget (Isolated) ---
 function renderCommerceAssistant() {
   let assistantContainer = document.getElementById('commerce-assistant-container');
   if (!assistantContainer) return;
 
   assistantContainer.className = 'bg-white border border-purple-100 rounded-2xl p-4 shadow-sm my-4';
-  
-  let confirmationHtml = '';
+
+  let summaryHtml = '';
   const req = window.commerceRequirement;
-  
+
   if (req.status === 'CONFIRMED') {
-    confirmationHtml = `
+    summaryHtml = `
       <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 my-2 text-xs">
         <p class="font-bold text-purple-900 mb-1">✅ Requirement Ready</p>
         <div class="text-gray-700 space-y-0.5 text-[11px] mb-2">
@@ -165,29 +153,23 @@ function renderCommerceAssistant() {
           <div><strong>Quantity:</strong> ${req.quantity || 'N/A'}</div>
           <div><strong>Source:</strong> ${req.sourceCountry || 'Not specified'}</div>
           <div><strong>Destination:</strong> ${req.destinationCountry || 'Not specified'}</div>
-          <div><strong>Purpose:</strong> ${req.purpose || 'N/A'}</div>
+          <div><strong>Purpose:</strong> ${req.purpose || 'General Sourcing'}</div>
         </div>
-        <div class="flex gap-2">
-          <button onclick="requestAiPermissionForRequirement()" class="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
-            Ask AI Advisor for Analysis
-          </button>
-          <button onclick="editRequirement()" class="bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-gray-300 transition">
-            Edit Requirement
-          </button>
-        </div>
+        <button onclick="editRequirement()" class="bg-gray-200 text-gray-700 py-1 px-2.5 rounded-lg text-xs font-medium hover:bg-gray-300 transition">
+          Edit Requirement
+        </button>
       </div>
     `;
   } else if (req.product && req.quantity && req.destinationCountry) {
-    // Enough info gathered to show summary confirmation prompt
-    confirmationHtml = `
+    summaryHtml = `
       <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 my-2 text-xs">
         <p class="font-bold text-amber-900 mb-1">मैंने आपकी आवश्यकता इस प्रकार समझी है:</p>
         <div class="text-gray-700 space-y-0.5 text-[11px] mb-2">
-          <div><strong>Product:</strong> ${req.product}</div>
-          <div><strong>Quantity:</strong> ${req.quantity}</div>
-          <div><strong>Source:</strong> ${req.sourceCountry || 'Not specified'}</div>
-          <div><strong>Destination:</strong> ${req.destinationCountry}</div>
-          <div><strong>Purpose:</strong> ${req.purpose || 'General Sourcing'}</div>
+          <div>Product: ${req.product}</div>
+          <div>Quantity: ${req.quantity}</div>
+          <div>Source: ${req.sourceCountry || 'Not specified'}</div>
+          <div>Destination: ${req.destinationCountry}</div>
+          <div>Purpose: ${req.purpose || 'Resale'}</div>
         </div>
         <div class="flex gap-2">
           <button onclick="confirmRequirement()" class="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
@@ -204,7 +186,7 @@ function renderCommerceAssistant() {
   assistantContainer.innerHTML = `
     <div class="flex justify-between items-center mb-2">
       <h3 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
-        🤖 AI Commerce Assistant (Phase 1: Intent & Sourcing)
+        🤖 AI Commerce Assistant
       </h3>
       <button onclick="resetCommerceRequest()" class="text-[10px] text-purple-600 hover:underline font-medium">
         Start New Request
@@ -213,14 +195,13 @@ function renderCommerceAssistant() {
 
     <p class="text-[11px] text-gray-500 mb-2">Voice + Text Commerce Matcher</p>
 
-    <div id="chat-messages" class="space-y-1.5 mb-2 max-h-40 overflow-y-auto text-[11px] bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-      ${window.chatHistory.length === 0 ? '<p class="text-gray-400 italic">"Type or speak your requirement (e.g. Mujhe India se 500 LED bulb USA mein bechne hain)..."</p>' : 
+    <div id="chat-messages" class="space-y-1.5 mb-2 max-h-36 overflow-y-auto text-[11px] bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+      ${window.chatHistory.length === 0 ? '<p class="text-gray-400 italic">"Type or speak what you need (e.g. Mujhe India se 500 LED bulb USA mein bechne hain)..."</p>' : 
         window.chatHistory.map(msg => `<div><strong>${msg.sender}:</strong>${msg.text}</div>`).join('')}
     </div>
 
-    ${confirmationHtml}
+    ${summaryHtml}
 
-    <!-- Hidden by default -->
     <div id="voice-status" style="display: none;" class="text-[10px] text-red-600 font-semibold mb-2 animate-pulse">🔴 Listening... Speak now.</div>
 
     <div class="flex gap-2 items-center">
@@ -232,8 +213,6 @@ function renderCommerceAssistant() {
         🎙️ Voice
       </button>
     </div>
-
-    <div id="requirement-analysis-box" class="mt-2"></div>
   `;
 }
 
@@ -293,18 +272,10 @@ function handleUserSubmit() {
   window.chatHistory.push({ sender: 'You', text: text });
   inputEl.value = '';
 
-  // Parse & Update State
   parseAndExtractRequirements(text);
 
-  // Check if info is still missing
   const nextQ = getNextClarifyingQuestion();
-  let aiReply = '';
-
-  if (nextQ) {
-    aiReply = `मैंने आपकी आवश्यकता नोट कर ली है। ${nextQ}`;
-  } else {
-    aiReply = `धन्यवाद! आपकी सारी जानकारी मिल गई है। कृपया नीचे दी गई summary को confirm करें।`;
-  }
+  let aiReply = nextQ ? `मैंने आपकी आवश्यकता नोट कर ली है। ${nextQ}` : `धन्यवाद! आपकी सारी जानकारी मिल गई है। कृपया नीचे दी गई summary देखें।`;
 
   window.chatHistory.push({ sender: 'AI', text: aiReply });
   renderCommerceAssistant();
@@ -312,7 +283,7 @@ function handleUserSubmit() {
 
 function confirmRequirement() {
   window.commerceRequirement.status = 'CONFIRMED';
-  window.chatHistory.push({ sender: 'AI', text: `Requirement Confirmed! Status: Requirement Ready. क्या आप इस requirement का detailed business analysis देखना चाहते हैं?` });
+  window.chatHistory.push({ sender: 'AI', text: `Requirement Ready. (Note: No external supplier matching or payment has been claimed yet).` });
   renderCommerceAssistant();
 }
 
@@ -320,51 +291,6 @@ function editRequirement() {
   window.commerceRequirement.status = 'COLLECTING';
   window.chatHistory.push({ sender: 'AI', text: `ठीक है, आप अपनी आवश्यकता में जो बदलाव करना चाहें बता सकते हैं।` });
   renderCommerceAssistant();
-}
-
-function requestAiPermissionForRequirement() {
-  const box = document.getElementById('requirement-analysis-box');
-  if (!box) return;
-
-  box.innerHTML = `
-    <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 mt-2 text-xs">
-      <p class="font-bold text-gray-800 mb-1">AI Business Advisor Permission</p>
-      <p class="text-gray-700 mb-2">“क्या आप इस requirement का detailed business analysis देखना चाहते हैं?”</p>
-      <div class="flex gap-2">
-        <button onclick="showConfirmedAnalysis()" class="bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
-          [Yes, Show Analysis]
-        </button>
-        <button onclick="document.getElementById('requirement-analysis-box').innerHTML=''" class="bg-gray-100 text-gray-700 py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
-          [No, Not Now]
-        </button>
-      </div>
-    </div>
-  `;
-}
-
-function showConfirmedAnalysis() {
-  const req = window.commerceRequirement;
-  const box = document.getElementById('requirement-analysis-box');
-  if (!box) return;
-
-  box.innerHTML = `
-    <div class="bg-white border border-purple-200 rounded-xl p-3 mt-2 text-xs shadow-sm">
-      <h4 class="font-bold text-purple-800 mb-1">📊 Detailed Commercial Estimate Analysis</h4>
-      <div class="text-gray-600 space-y-1 mb-2 text-[11px] bg-gray-50 p-2 rounded border">
-        <div><strong>Target Product:</strong> ${req.product || 'General Sourced Item'}</div>
-        <div><strong>Quantity:</strong> ${req.quantity || 'Not specified'}</div>
-        <div><strong>Source Market:</strong> ${req.sourceCountry || 'India (Sample Baseline)'}</div>
-        <div><strong>Destination Market:</strong> ${req.destinationCountry || 'Global Target'}</div>
-        <div><strong>Purpose:</strong> ${req.purpose || 'Resale / Business'}</div>
-        <div><strong>Estimated Market Margin:</strong> ~40% to 46% (Estimated range)</div>
-        <div><strong>Risk Factors:</strong> Logistics & customs clearance variance.</div>
-      </div>
-      <p class="text-[9px] text-gray-400 italic mb-2">"AI estimates are for reference only. Final commercial decisions rest solely with the user."</p>
-      <button onclick="prepareOrderForRequirement()" class="w-full bg-purple-600 text-white py-2 rounded-lg font-semibold text-xs hover:bg-purple-700 transition">
-        🔒 Proceed to Order / Pi Payment
-      </button>
-    </div>
-  `;
 }
 
 function resetCommerceRequest() {
@@ -386,16 +312,15 @@ function resetCommerceRequest() {
   };
   window.chatHistory = [];
   renderCommerceAssistant();
-  loadOpportunities(sampleProducts);
 }
 
-// --- Render Opportunities (Product Cards) ---
+// --- Render Restored Today's Opportunities (Product Cards) ---
 function loadOpportunities(productsToDisplay = sampleProducts) {
   let container = document.getElementById('opportunities-container');
   if (!container) return;
 
   container.innerHTML = productsToDisplay.map(p => `
-    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm transition-all hover:shadow-md">
+    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4 transition-all hover:shadow-md">
       <div class="flex justify-between items-start mb-2">
         <span class="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
           ⚡ Sample Opportunity
@@ -433,7 +358,7 @@ function loadOpportunities(productsToDisplay = sampleProducts) {
   `).join('');
 }
 
-// --- Product-Specific AI Advisor Flow ---
+// --- Isolated AI Advisor Permission Flow ---
 function openAiAdvisorPermission(productId) {
   const product = sampleProducts.find(p => p.id === productId);
   if (!product) return;
@@ -445,7 +370,7 @@ function openAiAdvisorPermission(productId) {
 function renderProductAiAdvisor(product) {
   sampleProducts.forEach(p => {
     const box = document.getElementById(`ai-advisor-box-${p.id}`);
-    if (box) box.innerHTML = '';
+    if (box && p.id !== product.id) box.innerHTML = '';
   });
 
   const targetBox = document.getElementById(`ai-advisor-box-${product.id}`);
@@ -456,7 +381,7 @@ function renderProductAiAdvisor(product) {
       <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mt-3 shadow-sm">
         <h4 class="font-bold text-gray-800 text-xs mb-1">AI Business Advisor</h4>
         <p class="text-xs text-gray-700 mb-3">
-          “क्या आप इस requirement का detailed business analysis देखना चाहते हैं?”
+          Would you like me to provide a detailed analysis of this product?
         </p>
         <div class="flex flex-col gap-2">
           <button onclick="showProductAnalysis(${product.id})" class="w-full bg-purple-600 text-white py-2 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
@@ -482,4 +407,94 @@ function renderProductAiAdvisor(product) {
           <div><strong>Estimated Gross Margin:</strong> ${a.grossMargin}</div>
           <div><strong>Market Info:</strong> ${a.marketInfo}</div>
           <div><strong>Risk Factors:</strong> ${a.riskFactors}</div>
-        </di
+        </div>
+
+        <p class="text-[9px] text-gray-400 italic mb-3">
+          "AI estimates are for reference only. Final commercial decisions rest solely with the user."
+        </p>
+
+        <div class="flex flex-col gap-2">
+          <button onclick="prepareOrder(${product.id})" class="w-full bg-purple-600 text-white py-2.5 px-3 rounded-lg font-semibold text-xs hover:bg-purple-700 transition">
+            🔒 Proceed to Order / Pi Payment
+          </button>
+          <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg font-medium text-xs">
+            No, Not Now
+          </button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function showProductAnalysis(productId) {
+  const product = sampleProducts.find(p => p.id === productId);
+  if (!product) return;
+  window.activeAiProduct = { id: productId, state: 'analysis' };
+  renderProductAiAdvisor(product);
+}
+
+function closeProductAi(productId) {
+  window.activeAiProduct = null;
+  const targetBox = document.getElementById(`ai-advisor-box-${productId}`);
+  if (targetBox) targetBox.innerHTML = '';
+}
+
+// --- Margin Calculator ---
+function calculateMargin() {
+  const src = parseFloat(document.getElementById('sourcePrice')?.value) || 0;
+  const add = parseFloat(document.getElementById('additionalCost')?.value) || 0;
+  const sell = parseFloat(document.getElementById('sellingPrice')?.value) || 0;
+
+  const totalCost = src + add;
+  const grossMargin = sell - totalCost;
+  const marginPct = sell > 0 ? ((grossMargin / sell) * 100).toFixed(1) : 0;
+
+  const resultEl = document.getElementById('calcResult');
+  if (resultEl) {
+    resultEl.innerHTML = `Total Cost: ₹${totalCost} | Gross Margin: ₹${grossMargin} (${marginPct}%)`;
+  }
+}
+
+// --- Navigation & Role Handling ---
+function selectRole(role) {
+  localStorage.setItem('piNexusRole', role);
+}
+
+function loadSavedRole() {
+  const saved = localStorage.getItem('piNexusRole') || 'Buyer';
+  const el = document.getElementById('roleSelect');
+  if (el) el.value = saved;
+}
+
+function switchTab(tabName) {
+  const tabs = ['home', 'discover', 'advisor', 'orders', 'profile'];
+  tabs.forEach(t => {
+    const el = document.getElementById(`tab-${t}`);
+    if (el) el.classList.toggle('hidden', t !== tabName);
+  });
+}
+
+// --- Order / Pi Payment Flow ---
+function prepareOrder(productId) {
+  const product = sampleProducts.find(p => p.id === productId);
+  alert(`Initiating official Pi Testnet payment flow for ${product ? product.name : 'product'}. Note: Final transaction requires official Pi Network wallet authorization.`);
+}
+
+function searchOpportunities() {
+  const query = document.getElementById('searchInput')?.value.toLowerCase() || '';
+  const filtered = sampleProducts.filter(p => 
+    p.name.toLowerCase().includes(query) || 
+    p.category.toLowerCase().includes(query) ||
+    p.sourceMarket.toLowerCase().includes(query) ||
+    p.destinationMarket.toLowerCase().includes(query)
+  );
+  loadOpportunities(filtered);
+}
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+  loadSavedRole();
+  switchTab('home');
+  loadOpportunities(sampleProducts);
+  renderCommerceAssistant();
+});
