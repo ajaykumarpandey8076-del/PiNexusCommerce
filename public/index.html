@@ -34,7 +34,7 @@
     <!-- Home Tab Content -->
     <section id="tab-home" class="space-y-4">
       
-      <!-- Global Discovery Banner -->
+      <!-- Hero Section -->
       <div class="bg-gradient-to-r from-purple-900 to-indigo-900 text-white rounded-2xl p-4 shadow-md">
         <span class="text-[10px] bg-purple-700 text-purple-100 px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider">
           Powered by Pi Network
@@ -45,21 +45,124 @@
         </p>
       </div>
 
-      <!-- AI Commerce Assistant Widget Container (Dynamically Rendered) -->
-      <div id="commerce-assistant-container"></div>
+      <!-- AI Commerce Assistant Widget (Statically Pre-rendered for Bulletproof Visibility) -->
+      <div id="commerce-assistant-container" class="bg-white border border-purple-100 rounded-2xl p-4 shadow-sm my-4">
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
+            🤖 AI Commerce Assistant
+          </h3>
+          <button onclick="resetCommerceRequest()" class="text-[10px] text-purple-600 hover:underline font-medium">
+            Start New Request
+          </button>
+        </div>
 
-      <!-- Search Opportunities Section -->
-      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-        <h3 class="font-bold text-gray-900 text-xs mb-2">Search Global Opportunities</h3>
-        <div class="flex gap-2">
-          <input type="text" id="searchInput" placeholder="Search product, category, market (e.g. India, USA)..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" oninput="searchOpportunities()" />
+        <p class="text-[11px] text-gray-500 mb-2">Voice + Text Commerce Matcher</p>
+
+        <div id="chat-messages" class="space-y-1.5 mb-2 max-h-36 overflow-y-auto text-[11px] bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+          <p class="text-gray-400 italic">"Type or speak your requirement (e.g. Mujhe India से 500 LED bulb USA भेजने हैं)..."</p>
+        </div>
+
+        <div id="summary-render-box"></div>
+
+        <div id="voice-status" style="display: none;" class="text-[10px] text-red-600 font-semibold mb-2 animate-pulse">🔴 Listening... Speak now.</div>
+
+        <div class="flex gap-2 items-center">
+          <input type="text" id="assistantInput" placeholder="Type what you need..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" onkeydown="if(event.key==='Enter') handleUserSubmit()" />
+          <button onclick="handleUserSubmit()" class="bg-purple-600 text-white px-3.5 py-2.5 rounded-xl text-xs font-medium hover:bg-purple-700 transition">
+            Send
+          </button>
+          <button onclick="toggleVoiceRecording()" id="mic-btn" class="bg-gray-100 hover:bg-purple-100 text-gray-700 px-3 py-2.5 rounded-xl text-xs transition" title="Voice Command">
+            🎙️ Voice
+          </button>
         </div>
       </div>
 
-      <!-- Today's Opportunities Header & Container -->
+      <!-- Search Global Opportunities Section -->
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+        <h3 class="font-bold text-gray-900 text-xs mb-2">Search Global Opportunities</h3>
+        <div class="flex gap-2">
+          <input type="text" id="searchInput" placeholder="Search product, category, market..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" oninput="searchOpportunities()" />
+        </div>
+      </div>
+
+      <!-- Today's Opportunities Header & Statically Guaranteed Cards -->
       <div>
         <h2 class="text-sm font-bold text-gray-900 mb-3 px-1">Today's Opportunities</h2>
-        <div id="opportunities-container" class="space-y-4"></div>
+        <div id="opportunities-container" class="space-y-4">
+          
+          <!-- Smart LED Bulb Sample Card -->
+          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4">
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
+                ⚡ Sample Opportunity
+              </span>
+              <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full">
+                Electronics
+              </span>
+            </div>
+            
+            <h3 class="font-bold text-gray-900 text-base mb-1.5">Smart LED Bulb</h3>
+            <p class="text-xs text-gray-600 mb-3 leading-relaxed">Energy-efficient smart lighting solution for global markets.</p>
+            
+            <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 space-y-1.5 mb-4 border border-gray-100">
+              <div class="flex justify-between">
+                <span class="text-gray-500">Source Market:</span>
+                <span class="font-medium">India (₹120)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500">Destination Target:</span>
+                <span class="font-medium">USA</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2.5 pt-1">
+              <button onclick="openAiAdvisorPermission(1)" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
+                Ask AI Advisor
+              </button>
+              <button onclick="prepareOrder(1)" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm">
+                🔒 Proceed to Order / Pi Payment
+              </button>
+            </div>
+            <div id="ai-advisor-box-1" class="mt-3"></div>
+          </div>
+
+          <!-- Cotton Tote Bag Sample Card -->
+          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4">
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
+                ⚡ Sample Opportunity
+              </span>
+              <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full">
+                Clothing
+              </span>
+            </div>
+            
+            <h3 class="font-bold text-gray-900 text-base mb-1.5">Cotton Tote Bag</h3>
+            <p class="text-xs text-gray-600 mb-3 leading-relaxed">Eco-friendly reusable cotton carry bag.</p>
+            
+            <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 space-y-1.5 mb-4 border border-gray-100">
+              <div class="flex justify-between">
+                <span class="text-gray-500">Source Market:</span>
+                <span class="font-medium">India (₹80)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500">Destination Target:</span>
+                <span class="font-medium">UAE</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2.5 pt-1">
+              <button onclick="openAiAdvisorPermission(2)" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
+                Ask AI Advisor
+              </button>
+              <button onclick="prepareOrder(2)" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm">
+                🔒 Proceed to Order / Pi Payment
+              </button>
+            </div>
+            <div id="ai-advisor-box-2" class="mt-3"></div>
+          </div>
+
+        </div>
       </div>
 
     </section>
@@ -69,22 +172,6 @@
       <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
         <h2 class="font-bold text-sm text-gray-900 mb-1">🌍 Global Market Intelligence</h2>
         <p class="text-xs text-gray-600 mb-4">Explore cross-border trade corridors and verified wholesale markets.</p>
-        <div class="space-y-3 text-xs">
-          <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 flex justify-between items-center">
-            <div>
-              <span class="font-bold text-gray-800">India ➔ USA Corridor</span>
-              <p class="text-[11px] text-gray-500">High demand for Electronics & Sustainable Goods</p>
-            </div>
-            <span class="text-purple-600 font-semibold text-xs">Active</span>
-          </div>
-          <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 flex justify-between items-center">
-            <div>
-              <span class="font-bold text-gray-800">India ➔ UAE Corridor</span>
-              <p class="text-[11px] text-gray-500">High demand for Apparel & Eco Textiles</p>
-            </div>
-            <span class="text-purple-600 font-semibold text-xs">Active</span>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -92,26 +179,7 @@
     <section id="tab-advisor" class="hidden space-y-4">
       <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
         <h2 class="font-bold text-sm text-gray-900 mb-1">🤖 AI Business Advisor Hub</h2>
-        <p class="text-xs text-gray-600 mb-4">Calculate margins, evaluate cross-border shipping costs, and review risk factors.</p>
-        
-        <div class="space-y-3 bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs">
-          <h3 class="font-semibold text-gray-800">Quick Trade Margin Calculator</h3>
-          <div>
-            <label class="text-[11px] text-gray-500">Source Price (₹)</label>
-            <input type="number" id="sourcePrice" placeholder="120" class="w-full mt-1 p-2 border border-gray-200 rounded-lg text-xs" oninput="calculateMargin()" />
-          </div>
-          <div>
-            <label class="text-[11px] text-gray-500">Estimated Additional Cost / Logistics (₹)</label>
-            <input type="number" id="additionalCost" placeholder="30" class="w-full mt-1 p-2 border border-gray-200 rounded-lg text-xs" oninput="calculateMargin()" />
-          </div>
-          <div>
-            <label class="text-[11px] text-gray-500">Target Selling Price (₹)</label>
-            <input type="number" id="sellingPrice" placeholder="280" class="w-full mt-1 p-2 border border-gray-200 rounded-lg text-xs" oninput="calculateMargin()" />
-          </div>
-          <div id="calcResult" class="p-2.5 bg-purple-50 text-purple-900 font-bold rounded-lg text-center mt-2">
-            Total Cost: ₹150 | Gross Margin: ₹130 (46.4%)
-          </div>
-        </div>
+        <p class="text-xs text-gray-600 mb-4">Calculate margins and evaluate cross-border shipping costs.</p>
       </div>
     </section>
 
@@ -121,9 +189,6 @@
         <span class="text-2xl mb-2 block">🔒</span>
         <h2 class="font-bold text-sm text-gray-900 mb-1">Pi Network Payment & Orders</h2>
         <p class="text-xs text-gray-600 mb-4">Secure escrow and verified transactions via official Pi Testnet mechanisms.</p>
-        <span class="text-[11px] bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 rounded-full font-medium">
-          No active escrow orders. Select an opportunity to initiate secure connection.
-        </span>
       </div>
     </section>
 
@@ -131,21 +196,7 @@
     <section id="tab-profile" class="hidden space-y-4">
       <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
         <h2 class="font-bold text-sm text-gray-900 mb-1">👤 Global Commerce Profile</h2>
-        <p class="text-xs text-gray-600 mb-3">Manage your matching preferences and verified gateway settings.</p>
-        <div class="space-y-2 text-xs text-gray-700">
-          <div class="p-2.5 bg-gray-50 rounded-xl flex justify-between">
-            <span>Primary Currency:</span>
-            <span class="font-semibold">Pi / INR / USD</span>
-          </div>
-          <div class="p-2.5 bg-gray-50 rounded-xl flex justify-between">
-            <span>Payment Ecosystem:</span>
-            <span class="font-semibold text-purple-700">Pi Network (Primary)</span>
-          </div>
-          <div class="p-2.5 bg-gray-50 rounded-xl flex justify-between">
-            <span>Platform Mode:</span>
-            <span class="font-semibold text-purple-700">Matching & Discovery Gateway</span>
-          </div>
-        </div>
+        <p class="text-xs text-gray-600 mb-3">Manage your matching preferences.</p>
       </div>
     </section>
 
@@ -180,3 +231,4 @@
   <script src="app.js"></script>
 </body>
 </html>
+
