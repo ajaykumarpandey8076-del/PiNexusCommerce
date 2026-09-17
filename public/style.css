@@ -462,7 +462,63 @@ nav rect {
   stroke: currentColor !important;
   color: inherit !important;
   opacity: 1 !important;
+}/* ==========================================
+   PiNexusCommerce - Final Visual Corrections Only
+   ========================================= */
+
+/* 1. Precise Bottom Navigation Visibility Correction */
+nav, .fixed-bottom-nav, #bottom-nav {
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  border-top: 1px solid #cbd5e1 !important;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1) !important;
+  z-index: 9999 !important;
 }
+
+nav a:not(.active), 
+nav button:not(.active), 
+.nav-item:not(.active),
+.fixed-bottom-nav span {
+  color: #334155 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+nav a.active, 
+nav button.active, 
+.nav-item.active, 
+nav a.active span {
+  color: #6366f1 !important; /* Intended active navigation purple */
+  opacity: 1 !important;
+}
+
+nav svg, .fixed-bottom-nav svg {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+}
+
+/* 2. Restore Normal Dark Text Colors (Fix Accidental Purple Inheritance) */
+#commerce-assistant-container h3 {
+  color: #1f2937 !important; /* Dark readable slate for AI Commerce Assistant heading */
+}
+
+#commerce-assistant-container p {
+  color: #4b5563 !important; /* Dark readable gray for Voice + Text Commerce Matcher subtext */
+}
+
+#chat-messages p.italic {
+  color: #9ca3af !important; /* Standard muted gray for placeholder text */
+}
+
+/* Ensure Today's Opportunities and section headers use standard dark text */
+.section-title, 
+h2.font-bold, 
+div > h3.font-bold {
+  color: #111827 !important;
+}
+
 
 
 
