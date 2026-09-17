@@ -156,4 +156,89 @@ function loadSavedRole() {
     document.getElementById('roleSelectDropdown').value = saved;
     selectRole(saved);
 }
+// --- AI Business Advisor UX Improvement Addition ---
+window.showPermissionPrompt = typeof window.showPermissionPrompt !== 'undefined' ? window.showPermissionPrompt : true;
+window.showAnalysis = typeof window.showAnalysis !== 'undefined' ? window.showAnalysis : false;
+
+function renderAiAdvisor() {
+  let container = document.getElementById('ai-advisor-container');
+  if (!container) {
+    // Agar container nahi hai toh dynamic div create karke body ya main app mein add kar dete hain
+    const mainArea = document.querySelector('main') || document.body;
+    container = document.createElement('div');
+    container.id = 'ai-advisor-container';
+    container.className = 'p-4 max-w-md mx-auto';
+    mainArea.appendChild(container);
+  }
+
+  if (window.showPermissionPrompt && !window.showAnalysis) {
+    container.innerHTML = `
+      <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 shadow-sm mb-4">
+        <h2 class="text-xl font-bold text-gray-800 mb-2">AI Business Advisor</h2>
+        <p class="text-sm text-gray-700 mb-3">
+          Would you like the AI Advisor to generate a detailed commercial and estimate analysis for your business products?
+        </p>
+        <button id="yes-analysis-btn" class="bg-purple-600 text-white py-2 px-4 rounded-lg font-medium text-sm hover:bg-purple-700 transition">
+          Yes, Show Analysis
+        </button>
+      </div>
+    `;
+    
+    const btn = document.getElementById('yes-analysis-btn');
+    if (btn) {
+      btn.onclick = () => {
+        window.showPermissionPrompt = false;
+        window.showAnalysis = true;
+        renderAiAdvisor();
+      };
+    }
+  } else if (window.showAnalysis) {
+    container.innerHTML = `
+      <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-md mt-4 transition-all">
+        <h2 class="text-xl font-bold text-gray-800 mb-2">AI Business Advisor</h2>
+        <h3 class="font-semibold text-gray-800 mb-2">Detailed Estimate Analysis</h3>
+        <p class="text-xs text-gray-600 mb-4">
+          Based on current market estimates and your product margins, here is the breakdown of your commercial performance and pricing viability.
+        </p>
+        <p class="text-[10px] text-gray-400 italic mb-4">
+          Disclaimer: Estimates are provided for guidance purposes only. The user retains final decision-making authority over all pricing and transactions.
+        </p>
+        <div class="flex flex-col gap-2 pt-2 border-t border-gray-100">
+          <button id="proceed-payment-btn" class="w-full bg-purple-600 text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-purple-700 transition flex items-center justify-center gap-2">
+            Proceed to Order / Pi Payment
+          </button>
+          <button id="no-now-btn" class="w-full bg-gray-100 text-gray-700 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-200 transition">
+            No, Not Now
+          </button>
+        </div>
+      </div>
+    `;
+
+    const proceedBtn = document.getElementById('proceed-payment-btn');
+    if (proceedBtn) {
+      proceedBtn.onclick = () => {
+        if (typeof openOrderFlow === 'function') {
+          openOrderFlow();
+        } else {
+          // Fallback if order flow function is named differently
+          alert('Opening Pi payment & order flow...');
+        }
+      };
+    }
+
+    const noBtn = document.getElementById('no-now-btn');
+    if (noBtn) {
+      noBtn.onclick = () => {
+        window.showAnalysis = false;
+        window.showPermissionPrompt = true;
+        renderAiAdvisor();
+      };
+    }
+  }
+}
+
+// Auto-run on load if container exists or init
+document.addEventListener('DOMContentLoaded', () => {
+  renderAiAdvisor();
+});
 
