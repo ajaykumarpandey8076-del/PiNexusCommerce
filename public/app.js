@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Complete Restored app.js
+// PiNexusCommerce - Complete Fixed & Restored app.js
 // ==========================================
 
 const sampleProducts = [
@@ -35,10 +35,22 @@ const sampleProducts = [
   }
 ];
 
-// --- Search & Opportunities Rendering ---
+// --- Render Opportunities & Product Cards safely ---
 function loadOpportunities(productsToDisplay = sampleProducts) {
-  const container = document.getElementById('opportunities-container');
-  if (!container) return;
+  let container = document.getElementById('opportunities-container');
+  if (!container) {
+    // Fallback: agar HTML mein container nahi mila toh heading ke baad create kar do
+    const targetHeading = document.evaluate("//h2[contains(text(), "Today's Opportunities")]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue 
+                          || document.body;
+    container = document.createElement('div');
+    container.id = 'opportunities-container';
+    container.className = 'p-4 max-w-md mx-auto';
+    if (targetHeading && targetHeading.parentNode) {
+      targetHeading.parentNode.insertBefore(container, targetHeading.nextSibling);
+    } else {
+      document.body.appendChild(container);
+    }
+  }
 
   container.innerHTML = productsToDisplay.map(p => `
     <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm mb-4">
@@ -95,17 +107,12 @@ function calculateMargin() {
 // --- Role Selection & Navigation ---
 function selectRole(role) {
   localStorage.setItem('piNexusRole', role);
-  const descEl = document.getElementById('roleDescription');
-  if (descEl) {
-    descEl.innerText = `Current Role: ${role}`;
-  }
 }
 
 function loadSavedRole() {
   const saved = localStorage.getItem('piNexusRole') || 'Buyer';
   const el = document.getElementById('roleSelect');
   if (el) el.value = saved;
-  selectRole(saved);
 }
 
 function switchTab(tabName) {
@@ -139,9 +146,14 @@ function openOrderFlow() {
 window.aiAdvisorState = window.aiAdvisorState || 'permission';
 
 function renderAiAdvisor() {
-  // Target ONLY the dedicated AI Advisor container element in the DOM
-  const container = document.getElementById('ai-advisor-container');
-  if (!container) return; // Never overwrite body or main!
+  let container = document.getElementById('ai-advisor-container');
+  if (!container) {
+    // Fallback container creation if missing in HTML
+    container = document.createElement('div');
+    container.id = 'ai-advisor-container';
+    container.className = 'p-4 max-w-md mx-auto my-4';
+    document.body.appendChild(container);
+  }
 
   if (window.aiAdvisorState === 'permission') {
     container.innerHTML = `
@@ -218,3 +230,4 @@ document.addEventListener('DOMContentLoaded', () => {
   loadOpportunities();
   renderAiAdvisor();
 });
+      
