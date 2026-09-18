@@ -20,7 +20,7 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <select id="roleSelect" onchange="selectRole(this.value)" class="text-[11px] bg-purple-50 text-purple-700 font-medium border border-purple-200 rounded-lg px-2 py-1 focus:outline-none">
+        <select id="roleSelect" class="text-[11px] bg-purple-50 text-purple-700 font-medium border border-purple-200 rounded-lg px-2 py-1 focus:outline-none">
           <option value="Buyer">Role: Buyer / Sourcing</option>
           <option value="Supplier">Role: Supplier / Wholesaler</option>
         </select>
@@ -51,7 +51,7 @@
           <h3 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
             🤖 AI Commerce Assistant
           </h3>
-          <button onclick="resetCommerceRequest()" class="text-[10px] text-purple-600 hover:underline font-medium">
+          <button id="reset-req-btn" class="text-[10px] text-purple-600 hover:underline font-medium">
             Start New Request
           </button>
         </div>
@@ -67,11 +67,11 @@
         <div id="voice-status" style="display: none;" class="text-[10px] text-red-600 font-semibold mb-2 animate-pulse">🔴 Listening... Speak now.</div>
 
         <div class="flex gap-2 items-center">
-          <input type="text" id="assistantInput" placeholder="Type what you need..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" onkeydown="if(event.key==='Enter') handleUserSubmit()" />
-          <button onclick="handleUserSubmit()" class="bg-purple-600 text-white px-3.5 py-2.5 rounded-xl text-xs font-medium hover:bg-purple-700 transition">
+          <input type="text" id="assistantInput" placeholder="Type what you need..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" />
+          <button id="send-chat-btn" class="bg-purple-600 text-white px-3.5 py-2.5 rounded-xl text-xs font-medium hover:bg-purple-700 transition">
             Send
           </button>
-          <button onclick="toggleVoiceRecording()" id="mic-btn" class="bg-gray-100 hover:bg-purple-100 text-gray-700 px-3 py-2.5 rounded-xl text-xs transition" title="Voice Command">
+          <button id="mic-btn" class="bg-gray-100 hover:bg-purple-100 text-gray-700 px-3 py-2.5 rounded-xl text-xs transition" title="Voice Command">
             🎙️ Voice
           </button>
         </div>
@@ -81,7 +81,7 @@
       <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
         <h3 class="font-bold text-gray-900 text-xs mb-2">Search Global Opportunities</h3>
         <div class="flex gap-2">
-          <input type="text" id="searchInput" placeholder="Search product, category, market..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" oninput="searchOpportunities()" />
+          <input type="text" id="searchInput" placeholder="Search product, category, market..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" />
         </div>
       </div>
 
@@ -116,11 +116,10 @@
             </div>
 
             <div class="flex flex-col gap-2.5 pt-1">
-              <button onclick="openAiAdvisorPermission(1)" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
+              <button type="button" data-action="advisor" data-id="1" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
                 Ask AI Advisor
               </button>
-              <!-- Direct ID button without messy inline handlers -->
-              <button id="order-btn-1" type="button" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm cursor-pointer">
+              <button type="button" data-action="order" data-id="1" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm cursor-pointer">
                 🔒 Proceed to Order / Pi Payment
               </button>
             </div>
@@ -153,11 +152,10 @@
             </div>
 
             <div class="flex flex-col gap-2.5 pt-1">
-              <button onclick="openAiAdvisorPermission(2)" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
+              <button type="button" data-action="advisor" data-id="2" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
                 Ask AI Advisor
               </button>
-              <!-- Direct ID button without messy inline handlers -->
-              <button id="order-btn-2" type="button" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm cursor-pointer">
+              <button type="button" data-action="order" data-id="2" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm cursor-pointer">
                 🔒 Proceed to Order / Pi Payment
               </button>
             </div>
@@ -210,19 +208,19 @@
     <div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-sm text-purple-900">📦 Order Request Details</h3>
-        <button onclick="closeOrderModal()" class="text-gray-400 hover:text-gray-600 text-lg font-bold">×</button>
+        <button type="button" id="close-modal-btn" class="text-gray-400 hover:text-gray-600 text-lg font-bold">×</button>
       </div>
       <div id="order-modal-body" class="text-xs space-y-1.5 text-gray-700">
         <!-- Dynamic Content -->
       </div>
       <div class="flex flex-col gap-2 pt-2">
-        <button onclick="submitOrderEnquiry()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-xl text-xs font-medium transition">
+        <button type="button" id="submit-enquiry-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-xl text-xs font-medium transition">
           Send Enquiry / Request Order
         </button>
-        <button onclick="triggerPiPaymentAttempt()" class="w-full bg-gray-900 hover:bg-gray-800 text-white py-2 rounded-xl text-xs font-medium transition">
+        <button type="button" id="pay-pi-btn" class="w-full bg-gray-900 hover:bg-gray-800 text-white py-2 rounded-xl text-xs font-medium transition">
           Proceed to Pi Payment
         </button>
-        <button onclick="closeOrderModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 rounded-xl text-xs font-medium transition">
+        <button type="button" id="cancel-modal-btn" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 rounded-xl text-xs font-medium transition">
           Cancel
         </button>
       </div>
@@ -232,23 +230,23 @@
   <!-- Fixed Bottom Navigation Bar -->
   <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 py-2 shadow-lg">
     <div class="max-w-md mx-auto flex justify-around items-center text-center">
-      <button onclick="switchTab('home'); setActiveNav(this);" class="nav-item flex flex-col items-center text-purple-600 active" id="nav-btn-home">
+      <button type="button" data-tab="home" class="nav-item flex flex-col items-center text-purple-600 active" id="nav-btn-home">
         <span class="text-lg">🏠</span>
         <span class="text-[10px] font-semibold mt-0.5">Home</span>
       </button>
-      <button onclick="switchTab('discover'); setActiveNav(this);" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-discover">
+      <button type="button" data-tab="discover" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-discover">
         <span class="text-lg">🌍</span>
         <span class="text-[10px] font-semibold mt-0.5">Discover</span>
       </button>
-      <button onclick="switchTab('advisor'); setActiveNav(this);" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-advisor">
+      <button type="button" data-tab="advisor" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-advisor">
         <span class="text-lg">🤖</span>
         <span class="text-[10px] font-semibold mt-0.5">AI Advisor</span>
       </button>
-      <button onclick="switchTab('orders'); setActiveNav(this);" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-orders">
+      <button type="button" data-tab="orders" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-orders">
         <span class="text-lg">📦</span>
         <span class="text-[10px] font-semibold mt-0.5">Orders</span>
       </button>
-      <button onclick="switchTab('profile'); setActiveNav(this);" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-profile">
+      <button type="button" data-tab="profile" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-profile">
         <span class="text-lg">👤</span>
         <span class="text-[10px] font-semibold mt-0.5">Profile</span>
       </button>
