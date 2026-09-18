@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Final Complete Application Logic
+// PiNexusCommerce - Guaranteed Event-Listener Logic
 // ==========================================
 
 const sampleProducts = [
@@ -318,7 +318,7 @@ function toggleVoiceRecording() {
   recognition.start();
 }
 
-// --- Prepare Order Logic & Modal Trigger ---
+// --- Direct Order Trigger Function ---
 function prepareOrder(productId) {
   try {
     const product = sampleProducts.find(p => p.id === productId);
@@ -521,11 +521,11 @@ function setActiveNav(btn) {
 
 function searchOpportunities() {}
 
-// --- Initialization ---
+// --- Guaranteed Event Attachment on Page Load ---
 document.addEventListener('DOMContentLoaded', () => {
   try {
     loadSavedRole();
     switchTab('home');
     updateAssistantUI();
-  } catch (err) {
-    console.error("Initialization error:", err
+
+    // Direct guaranteed button binding so t    console.error("Initialization error:", err
