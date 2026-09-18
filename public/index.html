@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PiNexusCommerce - Global Commerce AI Assistant & Matching Platform</title>
+  <title>PiNexusCommerce - International Commerce Gateway</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -16,13 +16,15 @@
         <span class="text-xl">🌐</span>
         <div>
           <h1 class="font-bold text-sm text-gray-900 leading-tight">PiNexusCommerce</h1>
-          <p class="text-[10px] text-purple-600 font-medium">Global AI Matching Platform</p>
+          <p class="text-[10px] text-purple-600 font-medium">International Commerce Gateway</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
         <select id="roleSelect" class="text-[11px] bg-purple-50 text-purple-700 font-medium border border-purple-200 rounded-lg px-2 py-1 focus:outline-none">
           <option value="Buyer">Role: Buyer / Sourcing</option>
-          <option value="Supplier">Role: Supplier / Wholesaler</option>
+          <option value="Wholesaler">Role: Wholesaler</option>
+          <option value="Seller">Role: Seller / Trader</option>
+          <option value="Manufacturer">Role: Manufacturer</option>
         </select>
       </div>
     </div>
@@ -39,27 +41,27 @@
         <span class="text-[10px] bg-purple-700 text-purple-100 px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider">
           Powered by Pi Network
         </span>
-        <h2 class="text-base font-bold mt-2">Global Commerce Discovery & Matching</h2>
+        <h2 class="text-base font-bold mt-2">AI-Powered International Commerce Gateway</h2>
         <p class="text-xs text-purple-200 mt-1 leading-relaxed">
-          Connect directly with verified global suppliers, compare wholesale prices, and match requirements instantly—without holding inventory.
+          Search global products, research verified public suppliers, analyze market data, and connect directly with original websites.
         </p>
       </div>
 
-      <!-- AI Commerce Assistant Widget -->
+      <!-- AI Commerce Research Assistant Widget -->
       <div id="commerce-assistant-container" class="bg-white border border-purple-100 rounded-2xl p-4 shadow-sm my-4">
         <div class="flex justify-between items-center mb-2">
           <h3 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
-            🤖 AI Commerce Assistant
+            🤖 AI Commerce Research Engine
           </h3>
-          <button id="reset-req-btn" class="text-[10px] text-purple-600 hover:underline font-medium">
-            Start New Request
+          <button type="button" id="reset-req-btn" class="text-[10px] text-purple-600 hover:underline font-medium">
+            New Search
           </button>
         </div>
 
-        <p class="text-[11px] text-gray-500 mb-2">Voice + Text Commerce Matcher</p>
+        <p class="text-[11px] text-gray-500 mb-2">Ask naturally (Hindi, English, Hinglish)</p>
 
-        <div id="chat-messages" class="space-y-1.5 mb-2 max-h-36 overflow-y-auto text-[11px] bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-          <p class="text-gray-400 italic">"Type or speak your requirement..."</p>
+        <div id="chat-messages" class="space-y-2 mb-2 max-h-44 overflow-y-auto text-[11px] bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+          <p class="text-gray-400 italic">"What do you want to buy, sell, or research today?"</p>
         </div>
 
         <div id="summary-render-box"></div>
@@ -67,101 +69,23 @@
         <div id="voice-status" style="display: none;" class="text-[10px] text-red-600 font-semibold mb-2 animate-pulse">🔴 Listening... Speak now.</div>
 
         <div class="flex gap-2 items-center">
-          <input type="text" id="assistantInput" placeholder="Type what you need..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" />
-          <button id="send-chat-btn" class="bg-purple-600 text-white px-3.5 py-2.5 rounded-xl text-xs font-medium hover:bg-purple-700 transition">
-            Send
+          <input type="text" id="assistantInput" placeholder="e.g. 500 LED bulbs from India to USA..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" />
+          <button type="button" id="send-chat-btn" class="bg-purple-600 text-white px-3.5 py-2.5 rounded-xl text-xs font-medium hover:bg-purple-700 transition">
+            Search
           </button>
-          <button id="mic-btn" class="bg-gray-100 hover:bg-purple-100 text-gray-700 px-3 py-2.5 rounded-xl text-xs transition" title="Voice Command">
+          <button type="button" id="mic-btn" class="bg-gray-100 hover:bg-purple-100 text-gray-700 px-3 py-2.5 rounded-xl text-xs transition" title="Voice Command">
             🎙️ Voice
           </button>
         </div>
       </div>
 
-      <!-- Search Global Opportunities Section -->
-      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-        <h3 class="font-bold text-gray-900 text-xs mb-2">Search Global Opportunities</h3>
-        <div class="flex gap-2">
-          <input type="text" id="searchInput" placeholder="Search product, category, market..." class="flex-1 p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-600" />
-        </div>
-      </div>
-
-      <!-- Today's Opportunities Header & Static Cards -->
+      <!-- Real Source Results Container -->
       <div>
-        <h2 class="text-sm font-bold text-gray-900 mb-3 px-1">Today's Opportunities</h2>
-        <div id="opportunities-container" class="space-y-4">
-          
-          <!-- Smart LED Bulb Opportunity Card -->
-          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4 transition-all hover:shadow-md">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
-                Sample Opportunity
-              </span>
-              <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full">
-                Electronics
-              </span>
-            </div>
-            
-            <h3 class="font-bold text-gray-900 text-base mb-1.5">Smart LED Bulb</h3>
-            <p class="text-xs text-gray-600 mb-3 leading-relaxed">Energy-efficient smart lighting solution for global markets.</p>
-            
-            <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 space-y-1.5 mb-4 border border-gray-100">
-              <div class="flex justify-between">
-                <span class="text-gray-500">Source Market:</span>
-                <span class="font-medium">India (₹120)</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-500">Destination Target:</span>
-                <span class="font-medium">USA</span>
-              </div>
-            </div>
-
-            <div class="flex flex-col gap-2.5 pt-1">
-              <button type="button" data-action="advisor" data-id="1" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
-                Ask AI Advisor
-              </button>
-              <button type="button" data-action="order" data-id="1" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm cursor-pointer">
-                🔒 Proceed to Order / Pi Payment
-              </button>
-            </div>
-            <div id="ai-advisor-box-1" class="mt-3"></div>
+        <h2 class="text-sm font-bold text-gray-900 mb-3 px-1">Real Public Sources & Results</h2>
+        <div id="real-sources-container" class="space-y-4">
+          <div class="bg-white border border-gray-200 rounded-2xl p-6 text-center text-xs text-gray-500">
+            No active search query yet. Type your requirement above or use voice search.
           </div>
-
-          <!-- Cotton Tote Bag Opportunity Card -->
-          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4 transition-all hover:shadow-md">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
-                Sample Opportunity
-              </span>
-              <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full">
-                Clothing
-              </span>
-            </div>
-            
-            <h3 class="font-bold text-gray-900 text-base mb-1.5">Cotton Tote Bag</h3>
-            <p class="text-xs text-gray-600 mb-3 leading-relaxed">Eco-friendly reusable cotton carry bag.</p>
-            
-            <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 space-y-1.5 mb-4 border border-gray-100">
-              <div class="flex justify-between">
-                <span class="text-gray-500">Source Market:</span>
-                <span class="font-medium">India (₹80)</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-500">Destination Target:</span>
-                <span class="font-medium">UAE</span>
-              </div>
-            </div>
-
-            <div class="flex flex-col gap-2.5 pt-1">
-              <button type="button" data-action="advisor" data-id="2" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-purple-700 transition shadow-sm">
-                Ask AI Advisor
-              </button>
-              <button type="button" data-action="order" data-id="2" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-xl text-xs font-medium hover:bg-gray-800 transition shadow-sm cursor-pointer">
-                🔒 Proceed to Order / Pi Payment
-              </button>
-            </div>
-            <div id="ai-advisor-box-2" class="mt-3"></div>
-          </div>
-
         </div>
       </div>
 
@@ -171,7 +95,7 @@
     <section id="tab-discover" class="hidden space-y-4">
       <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
         <h2 class="font-bold text-sm text-gray-900 mb-1">🌍 Global Market Intelligence</h2>
-        <p class="text-xs text-gray-600 mb-4">Explore cross-border trade corridors and verified wholesale markets.</p>
+        <p class="text-xs text-gray-600 mb-4">Explore cross-border public trade corridors and wholesale markets.</p>
       </div>
     </section>
 
@@ -179,16 +103,20 @@
     <section id="tab-advisor" class="hidden space-y-4">
       <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
         <h2 class="font-bold text-sm text-gray-900 mb-1">🤖 AI Business Advisor Hub</h2>
-        <p class="text-xs text-gray-600 mb-4">Calculate margins and evaluate cross-border shipping costs.</p>
+        <p class="text-xs text-gray-600 mb-4">Evaluate cross-border shipping, public comparable prices, and market estimates.</p>
       </div>
     </section>
 
     <!-- Orders Tab -->
     <section id="tab-orders" class="hidden space-y-4">
       <div class="space-y-3">
-        <h2 class="font-bold text-sm text-gray-900 px-1">My Orders & Escrow</h2>
+        <h2 class="font-bold text-sm text-gray-900 px-1">Saved Inquiries & History</h2>
         <div id="orders-content-container">
-          <!-- Orders populated dynamically -->
+          <div class="bg-white border border-gray-200 rounded-2xl p-6 text-center shadow-sm">
+            <span class="text-2xl mb-2 block">📦</span>
+            <h3 class="font-bold text-sm text-gray-900 mb-1">No Saved Inquiries</h3>
+            <p class="text-xs text-gray-600">Your research and source inquiries will appear here.</p>
+          </div>
         </div>
       </div>
     </section>
@@ -197,35 +125,11 @@
     <section id="tab-profile" class="hidden space-y-4">
       <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
         <h2 class="font-bold text-sm text-gray-900 mb-1">👤 Global Commerce Profile</h2>
-        <p class="text-xs text-gray-600 mb-3">Manage your matching preferences.</p>
+        <p class="text-xs text-gray-600 mb-3">Manage your international trade role and preferences.</p>
       </div>
     </section>
 
   </main>
-
-  <!-- Interactive Order Request Modal Overlay -->
-  <div id="order-modal-overlay" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-xl space-y-3">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-sm text-purple-900">📦 Order Request Details</h3>
-        <button type="button" id="close-modal-btn" class="text-gray-400 hover:text-gray-600 text-lg font-bold">×</button>
-      </div>
-      <div id="order-modal-body" class="text-xs space-y-1.5 text-gray-700">
-        <!-- Dynamic Content -->
-      </div>
-      <div class="flex flex-col gap-2 pt-2">
-        <button type="button" id="submit-enquiry-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-xl text-xs font-medium transition">
-          Send Enquiry / Request Order
-        </button>
-        <button type="button" id="pay-pi-btn" class="w-full bg-gray-900 hover:bg-gray-800 text-white py-2 rounded-xl text-xs font-medium transition">
-          Proceed to Pi Payment
-        </button>
-        <button type="button" id="cancel-modal-btn" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 rounded-xl text-xs font-medium transition">
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- Fixed Bottom Navigation Bar -->
   <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 py-2 shadow-lg">
@@ -244,7 +148,7 @@
       </button>
       <button type="button" data-tab="orders" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-orders">
         <span class="text-lg">📦</span>
-        <span class="text-[10px] font-semibold mt-0.5">Orders</span>
+        <span class="text-[10px] font-semibold mt-0.5">Inquiries</span>
       </button>
       <button type="button" data-tab="profile" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-profile">
         <span class="text-lg">👤</span>
