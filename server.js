@@ -1,6 +1,5 @@
 const express = require('express');
 const path = require('path');
-const fetch = require('node-fetch'); // ya built-in fetch agar Node version modern hai
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -8,7 +7,6 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Server-side Public Web Commerce Research Engine Endpoint
 app.post('/api/search-commerce', async (req, res) => {
   try {
     const { query } = req.body;
@@ -17,9 +15,6 @@ app.post('/api/search-commerce', async (req, res) => {
     }
 
     const apiKey = process.env.SEARCH_PROVIDER_API_KEY;
-    const searchEngineId = process.env.SEARCH_ENGINE_ID;
-
-    // Check if live search provider is configured
     if (!apiKey) {
       return res.status(503).json({
         error: 'Live public-web research is currently unavailable — search provider API key not configured.',
@@ -27,14 +22,12 @@ app.post('/api/search-commerce', async (req, res) => {
       });
     }
 
-    // Formulate search target (e.g., handling specific requests like IndiaMART)
     let refinedQuery = query;
     if (query.toLowerCase().includes('indiamart')) {
       refinedQuery = `site:indiamart.com ${query}`;
     }
 
-    // Call external public web search API (Google Custom Search API example)
-    const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${encodeURIComponent(apiKey)}&cx=${encodeURIComponent(searchEngineId || '')}&q=${encodeURIComponent(refinedQuery)}`;
+    const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${encodeURIComponent(apiKey)}&cx=${encodeURIComponent(process.env.SEARCH_ENGINE_ID || '')}&q=${encodeURIComponent(refinedQuery)}`;
     
     const response = await fetch(searchUrl);
     const data = await response.json();
@@ -53,7 +46,6 @@ app.post('/api/search-commerce', async (req, res) => {
       });
     }
 
-    // Extract real public results safely
     const formattedResults = data.items.map((item, index) => ({
       id: `live-res-${index + 1}`,
       productName: item.title || 'Public Commerce Result',
