@@ -1,5 +1,5 @@
 // ==========================================
-// PiNexusCommerce - Guaranteed Event-Listener Logic
+// PiNexusCommerce - Global Event Delegation Architecture
 // ==========================================
 
 const sampleProducts = [
@@ -176,10 +176,10 @@ function updateAssistantUI() {
           <div><strong>Destination:</strong> ${req.destinationCountry || 'Not specified'}</div>
         </div>
         <div class="flex gap-2 mt-2">
-          <button onclick="triggerPhase2Matching()" class="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition shadow-sm">
+          <button type="button" id="find-matches-btn" class="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition shadow-sm">
             Find Supplier Matches
           </button>
-          <button onclick="editRequirement()" class="bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-gray-300 transition">
+          <button type="button" id="edit-req-btn" class="bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-gray-300 transition">
             Edit Requirement
           </button>
         </div>
@@ -197,10 +197,10 @@ function updateAssistantUI() {
           <div>Destination: ${req.destinationCountry}</div>
         </div>
         <div class="flex gap-2">
-          <button onclick="confirmRequirement()" class="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
+          <button type="button" id="confirm-req-btn" class="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
             [Confirm Requirement]
           </button>
-          <button onclick="editRequirement()" class="bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-gray-300 transition">
+          <button type="button" id="edit-req-btn" class="bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-gray-300 transition">
             [Edit Requirement]
           </button>
         </div>
@@ -318,7 +318,7 @@ function toggleVoiceRecording() {
   recognition.start();
 }
 
-// --- Direct Order Trigger Function ---
+// --- Order Processing Logic ---
 function prepareOrder(productId) {
   try {
     const product = sampleProducts.find(p => p.id === productId);
@@ -417,7 +417,7 @@ function renderOrdersScreen() {
       </div>
 
       <div class="pt-1">
-        <button onclick="alert('Order Details (${o.orderId}):\\nProduct: ${o.product}\\nDestination: ${o.destinationMarket}\\nStatus: ${o.status}\\n\\nPi Payment Not Available Yet.')" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-xl text-xs font-medium transition">
+        <button type="button" onclick="alert('Order Details (${o.orderId}):\\nProduct: ${o.product}\\nDestination: ${o.destinationMarket}\\nStatus: ${o.status}\\n\\nPi Payment Not Available Yet.')" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-xl text-xs font-medium transition">
           View Order Details
         </button>
       </div>
@@ -448,10 +448,10 @@ function renderProductAiAdvisor(product) {
         <h4 class="font-bold text-gray-800 text-xs mb-1">AI Business Advisor</h4>
         <p class="text-xs text-gray-700 mb-3">Would you like me to provide a detailed analysis of this product?</p>
         <div class="flex flex-col gap-2">
-          <button onclick="showProductAnalysis(${product.id})" class="w-full bg-purple-600 text-white py-2 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
+          <button type="button" onclick="showProductAnalysis(${product.id})" class="w-full bg-purple-600 text-white py-2 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
             [Yes, Show Analysis]
           </button>
-          <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
+          <button type="button" onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
             [No, Not Now]
           </button>
         </div>
@@ -472,7 +472,7 @@ function renderProductAiAdvisor(product) {
           <div><strong>Risk Factors:</strong> ${a.riskFactors}</div>
         </div>
         <p class="text-[9px] text-gray-400 italic mb-3">"AI estimates are for reference only."</p>
-        <button onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg font-medium text-xs">Close</button>
+        <button type="button" onclick="closeProductAi(${product.id})" class="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg font-medium text-xs">Close</button>
       </div>
     `;
   }
@@ -521,11 +521,7 @@ function setActiveNav(btn) {
 
 function searchOpportunities() {}
 
-// --- Guaranteed Event Attachment on Page Load ---
+// --- GLOBAL BULLETPROOF EVENT DELEGATION (Works 100% on Mobile/Pi Browser) ---
 document.addEventListener('DOMContentLoaded', () => {
   try {
-    loadSavedRole();
-    switchTab('home');
-    updateAssistantUI();
-
-    // Direct guaranteed button binding so t    console.error("Initialization error:", err
+    loadSavedRole
