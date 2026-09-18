@@ -1,119 +1,94 @@
 const express = require('express');
 const path = require('path');
+const fetch = require('node-fetch'); // ya built-in fetch agar Node version modern hai
+
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-let mockProducts = [
-    { id: 1, title: 'Smart Solar Power Bank 20000mAh', category: 'Electronics', sourceCountry: 'India', sourcePrice: 18.50, priceType: 'verified', destination: 'USA', estimatedShipping: 4.50, estimatedOther: 1.00, minSell: 35.00, maxSell: 45.00 },
-    { id: 2, title: 'Organic Cotton Artisan Tote Bags', category: 'Clothing', sourceCountry: 'Vietnam', sourcePrice: 3.20, priceType: 'verified', destination: 'Europe', estimatedShipping: 1.50, estimatedOther: 0.50, minSell: 9.99, maxSell: 14.99 },
-    { id: 3, title: 'Handcrafted Bamboo Kitchen Organizer', category: 'Home', sourceCountry: 'Indonesia', sourcePrice: 6.00, priceType: 'estimated', destination: 'Canada', estimatedShipping: 3.00, estimatedOther: 0.80, minSell: 18.00, maxSell: 24.00 }
-];
-
-let mockOrders = [];
-let platformRevenueLog = [];
-
-app.get('/api/opportunities', (req, res) => {
-    const { category } = req.query;
-    let items = mockProducts;
-    if (category && category !== 'All') {
-        items = items.filter(p => p.category.toLowerCase() === category.toLowerCase());
-    }
-    res.json({
-        status: 'success',
-        count: items.length,
-        opportunities: items.map(item => {
-            const totalCost = item.sourcePrice + item.estimatedShipping + item.estimatedOther;
-            const estMinMargin = (((item.minSell - totalCost) / item.minSell) * 100).toFixed(1);
-            return {
-                ...item,
-                estimatedTotalCost: totalCost.toFixed(2),
-                estimatedGrossMarginPercent: estMinMargin + '%'
-            };
-        })
-    });
-});
-
-app.post('/api/ai/analyze', (req, res) => {
-    const { productId, userConsented, userRole } = req.body;
-    const product = mockProducts.find(p => p.id === Number(productId)) || mockProducts[0];
-
-    if (!userConsented) {
-        return res.status(200).json({
-            status: "paused",
-            message: "Would you like me to provide a detailed analysis of this product?"
-        });
+// Server-side Public Web Commerce Research Engine Endpoint
+app.post('/api/search-commerce', async (req, res) => {
+  try {
+    const { query } = req.body;
+    if (!query) {
+      return res.status(400).json({ error: 'Search query is required.' });
     }
 
-    const supplierInfo = userRole === 'supplier' ? "Confidential Source Data (Protected)" : "Verified Global Supplier Network";
-    const totalCost = product.sourcePrice + product.estimatedShipping + product.estimatedOther;
-    const marginMin = ((product.minSell - totalCost) / product.minSell) * 100;
-    const marginMax = ((product.maxSell - totalCost) / product.maxSell) * 100;
+    const apiKey = process.env.SEARCH_PROVIDER_API_KEY;
+    const searchEngineId = process.env.SEARCH_ENGINE_ID;
 
-    res.json({
-        status: "success",
-        data: {
-            productName: product.title,
-            source: `${product.sourceCountry} ($${product.sourcePrice})`,
-            destinationMarket: product.destination,
-            estimatedTotalCost: totalCost.toFixed(2),
-            potentialSellingRange: `$${product.minSell.toFixed(2)} - $${product.maxSell.toFixed(2)}`,
-            potentialGrossMargin: `${marginMin.toFixed(1)}% — ${marginMax.toFixed(1)}% (Estimated)`,
-            marketSignals: "High demand in destination market, low seasonal supply.",
-            riskFactors: "Shipping customs clearance variability; currency fluctuation.",
-            alternativeSources: ["Alternative Tier-2 Supplier in region available upon verification"]
-        },
-        disclaimer: "This information is based on available data and estimates. Market conditions and actual costs may change. The final decision is yours."
-    });
-});
+    // Check if live search provider is configured
+    if (!apiKey) {
+      return res.status(503).json({
+        error: 'Live public-web research is currently unavailable — search provider API key not configured.',
+        code: 'API_KEY_MISSING'
+      });
+    }
 
-app.post('/api/orders/create', (req, res) => {
-    const { productId, buyerId, agreedTotal, paymentMethod } = req.body;
-    const product = mockProducts.find(p => p.id === Number(productId));
+    // Formulate search target (e.g., handling specific requests like IndiaMART)
+    let refinedQuery = query;
+    if (query.toLowerCase().includes('indiamart')) {
+      refinedQuery = `site:indiamart.com ${query}`;
+    }
+
+    // Call external public web search API (Google Custom Search API example)
+    const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${encodeURIComponent(apiKey)}&cx=${encodeURIComponent(searchEngineId || '')}&q=${encodeURIComponent(refinedQuery)}`;
     
-    if (!product) {
-        return res.status(404).json({ status: 'error', message: 'Product not found' });
+    const response = await fetch(searchUrl);
+    const data = await response.json();
+
+    if (data.error) {
+      return res.status(502).json({
+        error: `Search provider error: ${data.error.message}`,
+        code: 'PROVIDER_ERROR'
+      });
     }
 
-    const platformFee = Number((agreedTotal * 0.02).toFixed(2));
-    const newOrder = {
-        orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
-        productId: product.id,
-        productTitle: product.title,
-        buyerId: buyerId || 'Guest-Pi-User',
-        totalAmount: agreedTotal,
-        platformFee: platformFee,
-        paymentMethod: paymentMethod || 'Pi Wallet SDK (Pending Confirmation)',
-        status: 'Pending Pi Payment Confirmation',
-        createdAt: new Date().toISOString()
-    };
+    if (!data.items || data.items.length === 0) {
+      return res.status(404).json({
+        results: [],
+        message: 'No relevant public information was found.'
+      });
+    }
 
-    mockOrders.push(newOrder);
-    platformRevenueLog.push({ orderId: newOrder.orderId, fee: platformFee, timestamp: newOrder.createdAt });
+    // Extract real public results safely
+    const formattedResults = data.items.map((item, index) => ({
+      id: `live-res-${index + 1}`,
+      productName: item.title || 'Public Commerce Result',
+      sourceName: item.displayLink || 'Public Web Source',
+      sourceCountry: query.toLowerCase().includes('india') ? 'India / International' : 'Global Source',
+      destinationRelevance: 'International Trade Source',
+      listedPrice: 'Public Listing Available Online',
+      currency: 'Original Source Currency',
+      moq: 'Check source listing details',
+      sourceType: 'Public Web Search Index',
+      status: 'PUBLIC SOURCE',
+      originalUrl: item.link,
+      snippet: item.snippet || 'No snippet description available.',
+      retrievedAt: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+      analysisData: {
+        sourcePriceRange: 'Varies on original website',
+        estimatedCosts: 'Calculated at checkout or direct inquiry',
+        marketInfo: 'Retrieved from live public web index records.',
+        risks: 'Independent verification of supplier credentials and samples is strongly recommended.',
+        questions: ['What is your exact quotation?', 'What are the delivery terms?']
+      }
+    }));
 
-    res.json({
-        status: 'success',
-        message: 'Order created successfully. Complete payment via Pi Network Wallet.',
-        order: newOrder
+    return res.json({ results: formattedResults });
+
+  } catch (err) {
+    console.error('Search route error:', err);
+    return res.status(500).json({
+      error: 'Live public-web research is currently unavailable due to a server error.',
+      code: 'SERVER_ERROR'
     });
+  }
 });
 
-app.get('/api/admin/metrics', (req, res) => {
-    const totalVolume = mockOrders.reduce((sum, o) => sum + o.totalAmount, 0);
-    const totalRevenue = platformRevenueLog.reduce((sum, r) => sum + r.fee, 0);
-    res.json({
-        dailyActiveUsers: 1420,
-        monthlyActiveUsers: 28950,
-        totalProducts: mockProducts.length,
-        totalSuppliers: 48,
-        totalOrders: mockOrders.length,
-        transactionVolumeUSD: totalVolume.toFixed(2),
-        platformRevenueUSD: totalRevenue.toFixed(2),
-        aiAdvisorQueries: 312
-    });
+app.listen(PORT, () => {
+  console.log(`PiNexusCommerce gateway running on port ${PORT}`);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`PiNexusCommerce Global MVP running on port ${PORT}`));
-           
