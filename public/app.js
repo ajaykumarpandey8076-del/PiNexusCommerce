@@ -1,10 +1,10 @@
 // ==========================================
-// PiNexusCommerce - Reality-First Public Commerce Research Engine
+// PiNexusCommerce - Live Public Web Research App Logic
 // ==========================================
 
 window.commerceContext = window.commerceContext || {
   product: null,
-  intent: null, // BUY, SELL, SOURCE, FIND SUPPLIER, etc.
+  intent: null,
   quantity: null,
   sourceCountry: null,
   destinationCountry: null,
@@ -13,134 +13,51 @@ window.commerceContext = window.commerceContext || {
 
 window.chatHistory = window.chatHistory || [];
 window.currentSearchResults = window.currentSearchResults || [];
-window.savedInquiries = window.savedInquiries || [];
 
-// --- Public Commerce Research Engine ---
-function processUserCommerceQuery(queryText) {
+// --- Trigger Live Backend Public Search ---
+async function processUserCommerceQuery(queryText) {
   if (!queryText) return;
-  const lower = queryText.toLowerCase();
-
-  // 1. Context preservation check (e.g. "Kal wala supplier dikhao" or "USA mein")
-  if (lower.includes('kal wala') || lower.includes('previous') || lower.includes('same')) {
-    window.chatHistory.push({ sender: 'AI', text: `Continuing with your previous request for ${window.commerceContext.product || 'your items'}.` });
-    renderRealSources(window.currentSearchResults);
-    updateAssistantUI();
-    return;
-  }
-
-  // 2. Intent Recognition
-  if (lower.includes('buy') || lower.includes('chahiye') || lower.includes('purchase') || lower.includes('sourcing')) {
-    window.commerceContext.intent = 'BUY / SOURCE';
-  } else if (lower.includes('sell') || lower.includes('bechna') || lower.includes('exporter')) {
-    window.commerceContext.intent = 'SELL / EXPORT';
-  } else if (lower.includes('manufacturer') || lower.includes('maker')) {
-    window.commerceContext.intent = 'FIND MANUFACTURER';
-  } else if (lower.includes('indiamart') || lower.includes('supplier')) {
-    window.commerceContext.intent = 'FIND SUPPLIER';
-  } else {
-    window.commerceContext.intent = 'RESEARCH / MARKET QUERY';
-  }
-
-  // 3. Product Extraction
-  if (lower.includes('bulb') || lower.includes('led')) {
-    window.commerceContext.product = 'LED Bulbs';
-  } else if (lower.includes('bag') || lower.includes('cotton') || lower.includes('tote')) {
-    window.commerceContext.product = 'Cotton Tote Bags';
-  } else if (lower.includes('toy') || lower.includes('toys') || lower.includes('khilone')) {
-    window.commerceContext.product = 'Toys';
-  } else if (!window.commerceContext.product) {
-    // Extract main noun or phrase
-    window.commerceContext.product = queryText.split(' ').slice(0, 3).join(' ');
-  }
-
-  // 4. Quantity Extraction
-  const qtyMatch = queryText.match(/\b(\d+)\s*(pieces|units|pcs|bulb|bulbs|bag|bags|toys)?/i);
-  if (qtyMatch && qtyMatch[1]) {
-    window.commerceContext.quantity = parseInt(qtyMatch[1], 10);
-  }
-
-  // 5. Country / Market Extraction
-  if (lower.includes('india')) {
-    if (lower.includes('se india') || lower.includes('from india')) window.commerceContext.sourceCountry = 'India';
-    else window.commerceContext.sourceCountry = window.commerceContext.sourceCountry || 'India';
-  }
-  if (lower.includes('usa') || lower.includes('america')) {
-    window.commerceContext.destinationCountry = 'USA';
-  } else if (lower.includes('uae') || lower.includes('dubai')) {
-    window.commerceContext.destinationCountry = 'UAE';
-  } else if (lower.includes('uk')) {
-    window.commerceContext.destinationCountry = 'UK';
-  }
-
+  
   window.chatHistory.push({ sender: 'You', text: queryText });
-
-  // Generate Real Public Source Results based on query
-  generateRealPublicSources(window.commerceContext);
   updateAssistantUI();
-}
 
-// --- Public Source Resolver Connector (Reality-First) ---
-function generateRealPublicSources(context) {
-  window.currentSearchResults = [];
-  const prod = context.product ? context.product.toLowerCase() : '';
-
-  if (!prod) {
-    window.currentSearchResults = [];
-    return;
+  const container = document.getElementById('real-sources-container');
+  if (container) {
+    container.innerHTML = `
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 text-center space-y-2 shadow-sm animate-pulse">
+        <span class="text-xl">🌐</span>
+        <p class="text-xs font-semibold text-purple-700">Searching live public web sources...</p>
+        <p class="text-[10px] text-gray-400">Querying verified public directories & web indexes...</p>
+      </div>
+    `;
   }
 
-  // Constructing legitimate public search connector references (No fake data)
-  const encodedQuery = encodeURIComponent(context.product || 'wholesale product');
-
-  if (prod.includes('bulb') || prod.includes('led') || prod.includes('bag') || prod.includes('toy') || prod.includes('wholesale') || prod.includes('manufacturer')) {
-    
-    window.currentSearchResults.push({
-      id: 'src-01',
-      productName: context.product,
-      sourceName: 'IndiaMART Public B2B Directory',
-      sourceCountry: context.sourceCountry || 'India',
-      destinationRelevance: context.destinationCountry ? `Export corridor to ${context.destinationCountry}` : 'Global B2B Market',
-      listedPrice: 'Public Listing Available Online',
-      currency: 'INR / USD',
-      moq: context.quantity ? `${context.quantity} units (Check supplier listing)` : 'Varies by supplier',
-      sourceType: 'Public B2B Marketplace Connector',
-      status: 'VERIFIED PUBLIC SOURCE',
-      originalUrl: `https://www.indiamart.com/proddetail/${encodedQuery}.html`,
-      retrievedAt: '2026-03-20 07:30 UTC',
-      analysisData: {
-        sourcePriceRange: 'Varies publicly on directory',
-        estimatedCosts: 'Shipping & duties applicable based on destination',
-        marketInfo: 'High public business activity recorded for this category.',
-        risks: 'Always verify GST, business license, and product samples directly with the supplier.',
-        questions: ['What is your exact FOB / EXW price?', 'What are the payment terms?', 'Do you provide export compliance certificates?']
-      }
+  try {
+    const response = await fetch('/api/search-commerce', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: queryText })
     });
 
-    window.currentSearchResults.push({
-      id: 'src-02',
-      productName: context.product,
-      sourceName: 'Global Verified Manufacturer Public Portal',
-      sourceCountry: context.sourceCountry || 'India / International',
-      destinationRelevance: context.destinationCountry ? `Target Market: ${context.destinationCountry}` : 'International Trade',
-      listedPrice: 'Direct Manufacturer Quote Required',
-      currency: 'Original Source Currency',
-      moq: 'Wholesale MOQ applies',
-      sourceType: 'Public Manufacturer Web Gateway',
-      status: 'VERIFIED PUBLIC SOURCE',
-      originalUrl: `https://www.google.com/search?q=manufacturer+of+${encodedQuery}`,
-      retrievedAt: '2026-03-20 07:30 UTC',
-      analysisData: {
-        sourcePriceRange: 'Direct factory pricing upon inquiry',
-        estimatedCosts: 'Logistics calculated per shipment volume',
-        marketInfo: 'Direct manufacturing source search via public web discovery.',
-        risks: 'Factory audit or third-party inspection recommended.',
-        questions: ['Are you the direct manufacturer or trading agent?', 'What is the production lead time?']
-      }
-    });
+    const data = await response.json();
 
-  } else {
-    // If no direct public database index matches, return empty state with standard protocol
-    window.currentSearchResults = [];
+    if (!response.ok) {
+      renderErrorState(data.error || 'Live public-web research is currently unavailable.');
+      window.chatHistory.push({ sender: 'AI', text: data.error || 'Search unavailable.' });
+      updateAssistantUI();
+      return;
+    }
+
+    window.currentSearchResults = data.results || [];
+    renderRealSources(window.currentSearchResults);
+    window.chatHistory.push({ sender: 'AI', text: `Found ${window.currentSearchResults.length} public result(s) for your request.` });
+    updateAssistantUI();
+
+  } catch (err) {
+    console.error('Search request failed:', err);
+    renderErrorState('Live public-web research is currently unavailable — network or server error.');
+    window.chatHistory.push({ sender: 'AI', text: 'Live public-web research is currently unavailable.' });
+    updateAssistantUI();
   }
 }
 
@@ -153,8 +70,8 @@ function renderRealSources(results) {
     container.innerHTML = `
       <div class="bg-white border border-gray-200 rounded-2xl p-6 text-center space-y-3 shadow-sm">
         <span class="text-2xl">🔍</span>
-        <h3 class="font-bold text-sm text-gray-900">No sufficient public information found</h3>
-        <p class="text-xs text-gray-600 leading-relaxed">We could not verify hardcoded or fake listings for this query. PiNexusCommerce maintains a strict Reality-First policy.</p>
+        <h3 class="font-bold text-sm text-gray-900">No relevant public information was found.</h3>
+        <p class="text-xs text-gray-600 leading-relaxed">No public web records matched your specific parameters under the Reality-First policy.</p>
         <div class="flex flex-col gap-2 pt-2">
           <button type="button" onclick="resetCommerceRequest()" class="bg-purple-600 text-white py-2 rounded-xl text-xs font-medium hover:bg-purple-700 transition">Try Another Search</button>
         </div>
@@ -170,23 +87,19 @@ function renderRealSources(results) {
           ${res.status}
         </span>
         <span class="text-[10px] font-medium bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">
-          ${res.sourceType}
+          ${res.sourceName}
         </span>
       </div>
 
       <div>
         <h3 class="font-bold text-gray-900 text-base">${res.productName}</h3>
-        <p class="text-xs text-purple-700 font-semibold mt-0.5">Source: ${res.sourceName}</p>
+        <p class="text-xs text-gray-600 mt-1 leading-relaxed">${res.snippet}</p>
       </div>
 
       <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 space-y-1 border border-gray-100">
         <div class="flex justify-between">
-          <span class="text-gray-500">Source Country:</span>
-          <span class="font-medium">${res.sourceCountry}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-500">Destination Relevance:</span>
-          <span class="font-medium">${res.destinationRelevance}</span>
+          <span class="text-gray-500">Source:</span>
+          <span class="font-medium">${res.sourceName}</span>
         </div>
         <div class="flex justify-between">
           <span class="text-gray-500">Price / MOQ:</span>
@@ -212,6 +125,20 @@ function renderRealSources(results) {
   `).join('');
 }
 
+function renderErrorState(errorMessage) {
+  const container = document.getElementById('real-sources-container');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center space-y-3 shadow-sm">
+      <span class="text-2xl">⚠️</span>
+      <h3 class="font-bold text-sm text-amber-900">Live Research Status Notice</h3>
+      <p class="text-xs text-amber-800 leading-relaxed">${errorMessage}</p>
+      <p class="text-[10px] text-gray-500 italic pt-1">Note: A server search API key (` + "`SEARCH_PROVIDER_API_KEY`" + `) is required in environment settings for live web queries.</p>
+    </div>
+  `;
+}
+
 // --- Permission-First AI Analysis Flow ---
 function requestAiAnalysis(sourceId) {
   const box = document.getElementById(`ai-analysis-box-${sourceId}`);
@@ -220,7 +147,7 @@ function requestAiAnalysis(sourceId) {
   box.innerHTML = `
     <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 mt-3 text-xs space-y-2">
       <p class="font-bold text-purple-900">AI Business Advisor Permission</p>
-      <p class="text-gray-700">Would you like me to provide a detailed analysis of this product source?</p>
+      <p class="text-gray-700">Would you like me to provide a detailed analysis of this product/source?</p>
       <div class="flex gap-2 pt-1">
         <button type="button" onclick="showConfirmedAnalysis('${sourceId}')" class="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-xs font-medium hover:bg-purple-700 transition">
           [Yes, Show Analysis]
@@ -241,10 +168,10 @@ function showConfirmedAnalysis(sourceId) {
   const a = res.analysisData;
   box.innerHTML = `
     <div class="bg-white border border-purple-300 rounded-xl p-3 mt-3 text-xs space-y-2 shadow-inner">
-      <p class="font-bold text-purple-900">📊 Detailed Commercial Analysis & Estimates</p>
+      <p class="font-bold text-purple-900">📊 ESTIMATED / AI ANALYSIS</p>
       <div class="space-y-1 text-gray-700 text-[11px] bg-gray-50 p-2 rounded-lg border">
         <div><strong>Source Price Range:</strong> ${a.sourcePriceRange}</div>
-        <div><strong>Estimated Logistics / Costs:</strong> ${a.estimatedCosts}</div>
+        <div><strong>Estimated Logistics:</strong> ${a.estimatedCosts}</div>
         <div><strong>Market Outlook:</strong> ${a.marketInfo}</div>
         <div><strong>Risk Factors:</strong> ${a.risks}</div>
         <div><strong>Key Questions for Supplier:</strong>
@@ -277,14 +204,6 @@ function updateAssistantUI() {
 }
 
 function resetCommerceRequest() {
-  window.commerceContext = {
-    product: null,
-    intent: null,
-    quantity: null,
-    sourceCountry: null,
-    destinationCountry: null,
-    status: 'COLLECTING'
-  };
   window.chatHistory = [];
   window.currentSearchResults = [];
   updateAssistantUI();
@@ -292,7 +211,7 @@ function resetCommerceRequest() {
   if (container) {
     container.innerHTML = `
       <div class="bg-white border border-gray-200 rounded-2xl p-6 text-center text-xs text-gray-500">
-        Search query reset. Enter a new requirement above.
+        No active search query yet.
       </div>
     `;
   }
@@ -346,7 +265,6 @@ function toggleVoiceRecording() {
   recognition.start();
 }
 
-// --- Tab Switching & Navigation ---
 function switchTab(tabName) {
   ['home', 'discover', 'advisor', 'orders', 'profile'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
@@ -363,15 +281,12 @@ function setActiveNav(btn) {
   btn.classList.remove('text-gray-600');
 }
 
-// --- Global Event Delegation Architecture ---
 document.addEventListener('DOMContentLoaded', () => {
   try {
     switchTab('home');
     updateAssistantUI();
 
-    // Global Click / Tap Delegation
     document.addEventListener('click', (e) => {
-      // Tab Navigation
       const tabBtn = e.target.closest('[data-tab]');
       if (tabBtn) {
         e.preventDefault();
@@ -382,7 +297,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Button Event Bindings
     document.getElementById('send-chat-btn')?.addEventListener('click', () => {
       const input = document.getElementById('assistantInput');
       if (input && input.value.trim()) {
@@ -410,4 +324,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error("Initialization error:", err);
   }
 });
-    
+
