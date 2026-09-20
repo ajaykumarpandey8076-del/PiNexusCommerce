@@ -19,9 +19,10 @@ app.post('/api/search-commerce', async (req, res) => {
       refinedQuery = `site:indiamart.com ${query}`;
     }
 
-    const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${encodeURIComponent(apiKey)}&cx=${encodeURIComponent(process.env.SEARCH_ENGINE_ID || '')}&q=${encodeURIComponent(refinedQuery)}`;
+    const apiKey = process.env.SEARCH_PROVIDER_API_KEY || 'free_key';
+
     
-    const response = await fetch(searchUrl);
+    const response = await fetch(searchUrl) 
     const data = await response.json();
 
     if (data.error) {
