@@ -11,68 +11,95 @@ app.post('/api/search-commerce', async (req, res) => {
   try {
     const { query } = req.body;
     if (!query) {
-      return res.status(400).json({ error: 'Search query is required.' });
+      return res.status(400).json({ 
+        success: false, 
+        available: false, 
+        error: 'Query is required' 
+      });
     }
 
-    
-    if (query.toLowerCase().includes('indiamart')) {
+    // Check safely if search credentials/API key are configured
+    const apiKey = process.env.SEARCH_PROVIDER_API_KEY;
+    if (!apiKey) {
+      return res.status(200).json({
+        success: false,
+        available: false,
+        results: [],
+        message: 'Live public-web research is currently unavailable because the search provider is not configured.'
+      });
+    }
+
+    let refinedQuery = query;
+    if (query.toLowerCase().includes('india')) {
       refinedQuery = `site:indiamart.com ${query}`;
     }
 
-    const apiKey = process.env.SEARCH_PROVIDER_API_KEY || 'free_key';
+    const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&q=${encodeURIComponent(refinedQuery)}`;
 
-    
-    const response = await fetch(searchUrl) 
+    const response = await fetch(searchUrl);
     const data = await response.json();
 
     if (data.error) {
       return res.status(502).json({
-        error: `Search provider error: ${data.error.message}`,
-        code: 'PROVIDER_ERROR'
+        success: false,
+        available: false,
+        results: [],
+        message: 'Search provider error occurred.'
       });
     }
 
     if (!data.items || data.items.length === 0) {
-      return res.status(404).json({
+      return res.status(200).json({
+        success: false,
+        available: true,
         results: [],
-        message: 'No relevant public information was found.'
+        message: 'No relevant public listings found.'
       });
     }
 
     const formattedResults = data.items.map((item, index) => ({
       id: `live-res-${index + 1}`,
-      productName: item.title || 'Public Commerce Result',
-      sourceName: item.displayLink || 'Public Web Source',
-      sourceCountry: query.toLowerCase().includes('india') ? 'India / International' : 'Global Source',
-      destinationRelevance: 'International Trade Source',
-      listedPrice: 'Public Listing Available Online',
+      productName: item.title || 'Public Listing',
+      sourceName: item.displayLink || 'Web Source',
+      sourceCountry: query.toLowerCase().includes('india') ? 'India' : 'International',
+      destinationRelevance: 'International',
+      listedPrice: 'Public Listing Available',
       currency: 'Original Source Currency',
       moq: 'Check source listing details',
-      sourceType: 'Public Web Search Index',
+      sourceType: 'Public Web Search Source',
       status: 'PUBLIC SOURCE',
       originalUrl: item.link,
-      snippet: item.snippet || 'No snippet description available.',
-      retrievedAt: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+      snippet: item.snippet || 'No snippet available',
+      retrievedAt: new Date().toISOString(),
       analysisData: {
-        sourcePriceRange: 'Varies on original website',
-        estimatedCosts: 'Calculated at checkout or direct inquiry',
-        marketInfo: 'Retrieved from live public web index records.',
-        risks: 'Independent verification of supplier credentials and samples is strongly recommended.',
-        questions: ['What is your exact quotation?', 'What are the delivery terms?']
+        sourcePriceRange: 'Varies on source',
+        estimatedCosts: 'Calculated at source',
+        marketInfo: 'Retrieved from live search',
+        risks: 'Independent verification required',
+        questions: ['What is your exact order quantity?']
       }
     }));
 
-    return res.json({ results: formattedResults });
+    return res.json({
+      success: true,
+      available: true,
+      results: formattedResults
+    });
 
   } catch (err) {
     console.error('Search route error:', err);
-    return res.status(500).json({
-      error 'Live public-web research is currently unavailable due to a server error.',
-      code: 'SERVER_ERROR'
+    return res.status(200).json({
+      success: false,
+      available: false,
+      results: [],
+      message: 'Live public-web research is temporarily unavailable.'
     });
   }
 });
 
+app.listen(PORT, () => {
+  console.log(`PiNexusCommerce gateway active on port ${PORT}`);
+});
 app.listen(PORT, () => {
   console.log(`PiNexusCommerce gateway running on port ${PORT}`);
 });
