@@ -14,14 +14,13 @@ app.post('/api/search-commerce', async (req, res) => {
       return res.status(400).json({ error: 'Search query is required.' });
     }
 
-    const apiKey = process.env.SEARCH_PROVIDER_API_KEY;
+    const apiKey = process.env.SEARCH_PROVIDER_API_KEY
 if (!apiKey) {
-  return res.status(503).json({
-    error: 'Live public research search...',
-    code: 'API_KEY_MISSING'
-  });
-}
-    let refinedQuery = query;
+return res.status(503).json({
+error: 'Live public research sea...
+code: 'API_KEY_MISSING'
+});
+  }
     if (query.toLowerCase().includes('indiamart')) {
       refinedQuery = `site:indiamart.com ${query}`;
     }
