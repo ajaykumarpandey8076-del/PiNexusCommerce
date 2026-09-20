@@ -15,13 +15,12 @@ app.post('/api/search-commerce', async (req, res) => {
     }
 
     const apiKey = process.env.SEARCH_PROVIDER_API_KEY;
-    if (!apiKey) {
-      return res.status(503).json({
-        error: 'Live public-web research is currently unavailable — search provider API key not configured.',
-        code: 'API_KEY_MISSING'
-      });
-    }
-
+if (!apiKey) {
+  return res.status(503).json({
+    error: 'Live public research search...',
+    code: 'API_KEY_MISSING'
+  });
+}
     let refinedQuery = query;
     if (query.toLowerCase().includes('indiamart')) {
       refinedQuery = `site:indiamart.com ${query}`;
