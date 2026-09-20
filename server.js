@@ -73,7 +73,7 @@ if (!apiKey) {
   } catch (err) {
     console.error('Search route error:', err);
     return res.status(500).json({
-      error: 'Live public-web research is currently unavailable due to a server error.',
+      error 'Live public-web research is currently unavailable due to a server error.',
       code: 'SERVER_ERROR'
     });
   }
@@ -82,4 +82,5 @@ if (!apiKey) {
 app.listen(PORT, () => {
   console.log(`PiNexusCommerce gateway running on port ${PORT}`);
 });
+// Build trigger update - search fix active
 
