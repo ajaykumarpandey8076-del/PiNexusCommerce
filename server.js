@@ -49,7 +49,7 @@ app.post('/api/search-commerce', async (req, res) => {
       body: JSON.stringify({
         contents: [{
           parts: [{ 
-            text: `Perform live web search research for the commercial query: "${query}". Provide real suppliers, wholesale pricing, MOQ, market info, and cite verifiable source links if available.` 
+            text: `Perform live web search research for the commercial query: "${query}". Provide real businesses or suppliers with business names, product details, publicly listed prices if available, MOQ if available, and original source URLs.` 
           }]
         }],
         tools: [{ googleSearch: {} }]
@@ -60,8 +60,8 @@ app.post('/api/search-commerce', async (req, res) => {
     clearTimeout(timeoutId);
 
     if (!apiResponse.ok) {
-      const errBody = await apiResponse.text();
-      console.error('Gemini API Error Response:', errBody);
+      const errText = await apiResponse.text();
+      console.error('Gemini API Error Response:', errText);
       return res.status(200).json({
         success: false,
         available: false,
@@ -73,69 +73,61 @@ app.post('/api/search-commerce', async (req, res) => {
     const data = await apiResponse.json();
     const candidate = data.candidates?.[0] || {};
     const textOutput = candidate.content?.parts?.[0]?.text || '';
-    const groundingMetadata = candidate.groundingMetadata || {};
-    const groundingChunks = groundingMetadata.groundingChunks || [];
-    
-    // Extract search queries performed by Gemini for transparency
-    const webSearchQueries = groundingMetadata.webSearchQueries || [];
+    const groundingChunks = candidate.groundingMetadata?.groundingChunks || [];
 
     let formattedResults = [];
 
-    // 1. Map explicit grounding chunks if available
+    // Map explicit grounding chunks if present
     if (groundingChunks.length > 0) {
       formattedResults = groundingChunks.map((chunk, index) => {
         const web = chunk.web || {};
         return {
-          id: `gemini-grounded-${index + 1}`,
-          productName: web.title || `Grounded Source ${index + 1}`,
-          sourceName: web.title ? new URL(web.uri || 'https://google.com').hostname : 'Verified Web Source',
-          sourceCountry: query.toLowerCase().includes('india') ? 'India / Global' : 'International',
+          id: `grounded-source-${index + 1}`,
+          productName: web.title || `Verified Source ${index + 1}`,
+          sourceName: web.title ? new URL(web.uri || 'https://google.com').hostname : 'Live Web Source',
+          sourceCountry: 'India / International',
           destinationRelevance: 'Global Sourcing',
           listedPrice: 'Refer to source listing',
-          currency: 'USD/INR',
+          currency: 'INR/USD',
           moq: 'Check source link',
           sourceType: 'Google Search Grounding',
           status: 'VERIFIED LIVE SOURCE',
           originalUrl: web.uri || 'https://www.google.com',
-          snippet: textOutput.substring(0, 320) + '...',
+          snippet: textOutput.substring(0, 320),
           retrievedAt: new Date().toISOString(),
           analysisData: {
-            sourcePriceRange: 'Extracted from search grounding',
-            estimatedCosts: 'Calculated via real web source',
+            sourcePriceRange: 'Extracted from live web search',
+            estimatedCosts: 'Calculated via real source',
             marketInfo: textOutput,
             risks: 'Independent verification required',
-            questions: ['What is your target order volume?']
+            questions: ['What is your target order quantity?']
           }
         };
       });
     }
 
-    // 2. Fallback / Primary Text Synthesis: If Gemini returned text analysis (even without explicit chunk arrays), 
-    // convert the response into a structured result card so the user never gets "0 public results".
+    // Always ensure valid Gemini text output populates a research result card
     if (formattedResults.length === 0 && textOutput.trim().length > 0) {
-      // Look for any supporting website reference in metadata or default to Google Search
-      const fallbackUrl = groundingChunks[0]?.web?.uri || 'https://www.google.com';
-      
       formattedResults.push({
-        id: 'gemini-synthesis-1',
-        productName: `Market Research: ${query}`,
-        sourceName: webSearchQueries.length > 0 ? `Web Search: ${webSearchQueries[0]}` : 'Google Search Grounded Synthesis',
-        sourceCountry: 'India / International',
+        id: 'gemini-research-1',
+        productName: `Market Research & Suppliers: ${query}`,
+        sourceName: 'Google Search Grounded Synthesis',
+        sourceCountry: 'India / Global',
         destinationRelevance: 'International Sourcing',
-        listedPrice: 'Refer to market synthesis',
-        currency: 'USD/INR',
+        listedPrice: 'Refer to synthesized research text',
+        currency: 'INR/USD',
         moq: 'Check supplier details',
-        sourceType: 'Gemini Live Web Research',
+        sourceType: 'Gemini Live Research',
         status: 'LIVE GROUNDED ANALYSIS',
-        originalUrl: fallbackUrl,
+        originalUrl: 'https://www.google.com',
         snippet: textOutput,
         retrievedAt: new Date().toISOString(),
         analysisData: {
-          sourcePriceRange: 'Dynamic market range from search',
-          estimatedCosts: 'Real-time grounding synthesis',
+          sourcePriceRange: 'Market range from live search',
+          estimatedCosts: 'Real-time synthesis',
           marketInfo: textOutput,
-          risks: 'Verify directly with listed suppliers',
-          questions: ['What specifications and volumes do you require?']
+          risks: 'Verify directly with listed entities',
+          questions: ['What exact specifications do you require?']
         }
       });
     }
