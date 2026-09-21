@@ -49,7 +49,7 @@ app.post('/api/search-commerce', async (req, res) => {
       body: JSON.stringify({
         contents: [{
           parts: [{ 
-            text: `Search the live web for commercial supplier information regarding: "${query}". Provide real businesses, product descriptions, pricing details, MOQ, and source references if available.` 
+            text: `Find real publicly available LED bulb wholesale suppliers in India. Provide business/supplier names, LED bulb product details, publicly listed prices if available, MOQ if available, and original source website URLs based on current web information: "${query}".` 
           }]
         }],
         tools: [{ googleSearch: {} }]
@@ -77,18 +77,18 @@ app.post('/api/search-commerce', async (req, res) => {
 
     let formattedResults = [];
 
-    // Map explicit grounding chunks if present
+    // Map explicit grounding chunks if available
     if (groundingChunks.length > 0) {
       formattedResults = groundingChunks.map((chunk, index) => {
         const web = chunk.web || {};
         return {
           id: `grounded-source-${index + 1}`,
-          productName: web.title || `Verified Source ${index + 1}`,
-          sourceName: web.title ? new URL(web.uri || 'https://google.com').hostname : 'Live Web Source',
-          sourceCountry: 'India / International',
-          destinationRelevance: 'Global Sourcing',
+          productName: web.title || `LED Bulb Supplier Source ${index + 1}`,
+          sourceName: web.title ? new URL(web.uri || 'https://google.com').hostname : 'Verified Web Source',
+          sourceCountry: 'India / Global',
+          destinationRelevance: 'Wholesale Sourcing',
           listedPrice: 'Refer to source listing',
-          currency: 'INR/USD',
+          currency: 'INR',
           moq: 'Check source link',
           sourceType: 'Google Search Grounding',
           status: 'VERIFIED LIVE SOURCE',
@@ -106,24 +106,24 @@ app.post('/api/search-commerce', async (req, res) => {
       });
     }
 
-    // Ensure model text output populates a valid research result card instead of showing 0 results
+    // Fallback: Convert valid text output into structured result card so zero results never happen
     if (formattedResults.length === 0 && textOutput.trim().length > 0) {
       formattedResults.push({
         id: 'gemini-research-1',
-        productName: `Market Research: ${query}`,
-        sourceName: 'Gemini Live Web Synthesis',
-        sourceCountry: 'India / Global',
-        destinationRelevance: 'International Sourcing',
+        productName: `LED Bulb Wholesale Research: ${query}`,
+        sourceName: 'Google Search Grounded Synthesis',
+        sourceCountry: 'India',
+        destinationRelevance: 'Wholesale Sourcing',
         listedPrice: 'Refer to research analysis',
-        currency: 'INR/USD',
+        currency: 'INR',
         moq: 'Check supplier details',
-        sourceType: 'Gemini Research Analysis',
+        sourceType: 'Gemini Live Research',
         status: 'LIVE ANALYSIS',
         originalUrl: 'https://www.google.com',
         snippet: textOutput,
         retrievedAt: new Date().toISOString(),
         analysisData: {
-          sourcePriceRange: 'Market range from search',
+          sourcePriceRange: 'Market range from live search',
           estimatedCosts: 'Real-time synthesis',
           marketInfo: textOutput,
           risks: 'Verify directly with listed entities',
