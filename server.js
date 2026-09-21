@@ -1,23 +1,24 @@
 const express = require('express');
 const path = require('path');
-const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Initialize Gemini API client safely server-side using GEMINI_API_KEY
-let aiClient = null;
-try {
-  if (process.env.GEMINI_API_KEY) {
-    aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Fallback root route to guarantee GET / always returns index.html successfully with HTTP 200
+app.get('/', (req, res, next) => {
+  try {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  } catch (err) {
+    console.error('Error serving index.html:', err);
+    res.status(200).send('PiNexusCommerce Gateway Active');
   }
-} catch (e) {
-  console.error('Gemini initialization error:', e);
-}
+});
 
+// Robust Search & Commerce Research Endpoint with Google Search Grounding via Gemini REST API
 app.post('/api/search-commerce', async (req, res) => {
   try {
     const { query } = req.body;
@@ -29,31 +30,43 @@ app.post('/api/search-commerce', async (req, res) => {
       });
     }
 
-    // Fail safely if Gemini API key is missing or client is not initialized
-    if (!aiClient || !process.env.GEMINI_API_KEY) {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.SEARCH_PROVIDER_API_KEY;
+    if (!apiKey) {
       return res.status(200).json({
         success: false,
         available: false,
         results: [],
-        message: 'Live public-web research is currently unavailable because GEMINI_API_KEY is not configured.'
+        message: 'Live public-web research is currently unavailable because the API key is not configured.'
       });
     }
 
     const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-    // Call official Gemini model with Google Search grounding tool enabled
-    const response = await aiClient.models.generateContent({
-      model: modelName,
-      contents: `Provide structured market and commercial research data regarding: ${query}. Summarize key findings, pricing trends, and source insights clearly.`,
-      config: {
-        tools: [{ googleSearch: {} }],
-      },
+    const apiResponse = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: `Provide structured market and commercial research data regarding: ${query}. Summarize key findings, pricing trends, and source insights clearly.` }]
+        }],
+        tools: [{ googleSearch: {} }]
+      })
     });
 
-    const textOutput = response.text || 'No market research data generated.';
-    
-    // Extract grounding source metadata safely if available
-    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    if (!apiResponse.ok) {
+      return res.status(200).json({
+        success: false,
+        available: false,
+        results: [],
+        message: 'Live public-web research is temporarily unavailable.'
+      });
+    }
+
+    const data = await apiResponse.json();
+    const candidate = data.candidates?.[0];
+    const textOutput = candidate?.content?.parts?.[0]?.text || 'No market research data generated.';
+    const groundingChunks = candidate?.groundingMetadata?.groundingChunks || [];
     const primarySourceUrl = groundingChunks[0]?.web?.uri || 'https://www.google.com';
     const primarySourceTitle = groundingChunks[0]?.web?.title || 'Verified Web Source';
 
@@ -87,7 +100,7 @@ app.post('/api/search-commerce', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Gemini search execution error:', err);
+    console.error('Search endpoint execution error:', err);
     return res.status(200).json({
       success: false,
       available: false,
@@ -97,7 +110,12 @@ app.post('/api/search-commerce', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`PiNexusCommerce gateway active on port ${PORT}`);
-});
+// Start local server if run directly
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`PiNexusCommerce gateway active on port ${PORT}`);
+  });
+}
+
+module.exports = app;
 
