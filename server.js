@@ -49,7 +49,7 @@ app.post('/api/search-commerce', async (req, res) => {
       body: JSON.stringify({
         contents: [{
           parts: [{ 
-            text: `Perform live web search research for the commercial query: "${query}". Provide real businesses or suppliers with business names, product details, publicly listed prices if available, MOQ if available, and original source URLs.` 
+            text: `Search the live web for commercial supplier information regarding: "${query}". Provide real businesses, product descriptions, pricing details, MOQ, and source references if available.` 
           }]
         }],
         tools: [{ googleSearch: {} }]
@@ -106,24 +106,24 @@ app.post('/api/search-commerce', async (req, res) => {
       });
     }
 
-    // Always ensure valid Gemini text output populates a research result card
+    // Ensure model text output populates a valid research result card instead of showing 0 results
     if (formattedResults.length === 0 && textOutput.trim().length > 0) {
       formattedResults.push({
         id: 'gemini-research-1',
-        productName: `Market Research & Suppliers: ${query}`,
-        sourceName: 'Google Search Grounded Synthesis',
+        productName: `Market Research: ${query}`,
+        sourceName: 'Gemini Live Web Synthesis',
         sourceCountry: 'India / Global',
         destinationRelevance: 'International Sourcing',
-        listedPrice: 'Refer to synthesized research text',
+        listedPrice: 'Refer to research analysis',
         currency: 'INR/USD',
         moq: 'Check supplier details',
-        sourceType: 'Gemini Live Research',
-        status: 'LIVE GROUNDED ANALYSIS',
+        sourceType: 'Gemini Research Analysis',
+        status: 'LIVE ANALYSIS',
         originalUrl: 'https://www.google.com',
         snippet: textOutput,
         retrievedAt: new Date().toISOString(),
         analysisData: {
-          sourcePriceRange: 'Market range from live search',
+          sourcePriceRange: 'Market range from search',
           estimatedCosts: 'Real-time synthesis',
           marketInfo: textOutput,
           risks: 'Verify directly with listed entities',
