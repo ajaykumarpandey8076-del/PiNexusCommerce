@@ -47,7 +47,7 @@ app.post('/api/search-commerce', async (req, res) => {
       body: JSON.stringify({
         contents: [{
           parts: [{ 
-            text: `Find real publicly available wholesale suppliers and market data for: "${query}". Use Google Search grounding and current public web information only.` 
+            text: `Find real publicly available suppliers and wholesale information for: "${query}". Use Google Search grounding and current public web information only. Extract exact business names, product details, listed price if available, MOQ if available, and original source URLs from grounding metadata. Do not invent anything.` 
           }]
         }],
         tools: [{ googleSearch: {} }]
@@ -59,60 +59,54 @@ app.post('/api/search-commerce', async (req, res) => {
 
     const data = await apiResponse.json();
     const candidate = data.candidates?.[0] || {};
-    const textOutput = candidate.content?.parts?.[0]?.text || `Market analysis for: ${query}`;
-    const groundingChunks = candidate.groundingMetadata?.groundingChunks || [];
+    const textOutput = candidate.content?.parts?.[0]?.text || '';
+    
+    // Strict inspection of grounding metadata structure
+    const groundingMetadata = candidate.groundingMetadata || {};
+    const groundingChunks = groundingMetadata.groundingChunks || [];
 
     let formattedResults = [];
 
-    // 1. Agar real grounding chunks available hain
+    // 1. Strict parsing: Only extract chunks that possess valid web URIs and titles
     if (groundingChunks.length > 0) {
-      formattedResults = groundingChunks
-        .filter(chunk => chunk.web && chunk.web.uri)
-        .map((chunk, index) => ({
-          id: `grounded-${index + 1}`,
-          productName: chunk.web.title || `Verified Source ${index + 1}`,
-          sourceName: new URL(chunk.web.uri).hostname,
+      const validSources = groundingChunks.filter(chunk => chunk.web && chunk.web.uri && chunk.web.title);
+      
+      formattedResults = validSources.map((chunk, index) => {
+        const web = chunk.web;
+        return {
+          id: `grounded-source-${index + 1}`,
+          productName: web.title,
+          sourceName: new URL(web.uri).hostname,
           sourceCountry: 'India / Global',
           destinationRelevance: 'Wholesale Sourcing',
           listedPrice: 'Not publicly available',
-          currency: 'INR',
+          currency: 'INR / USD',
           moq: 'Not publicly available',
           sourceType: 'Google Search Grounding',
           status: 'VERIFIED LIVE SOURCE',
-          originalUrl: chunk.web.uri,
-          snippet: textOutput,
+          originalUrl: web.uri,
+          snippet: textOutput || 'Real-time verified public source extracted via search grounding.',
           retrievedAt: new Date().toISOString(),
-          analysisData: { marketInfo: textOutput }
-        }));
+          analysisData: {
+            sourcePriceRange: 'Not publicly available',
+            estimatedCosts: 'Not publicly available',
+            marketInfo: textOutput,
+            risks: 'Independent business verification required',
+            questions: ['What is your target order quantity?']
+          }
+        };
+      });
     }
 
-    // 2. Safe Fallback: Agar chunks nahi bhi mile toh text output ko render karo taaki 0 results na aaye
+    // 2. Fallback: Agar koi actual web source nahi mila, toh empty array return karo taaki fake generic cards render na hon
     if (formattedResults.length === 0) {
-      formattedResults.push({
-        id: 'gemini-synthesis-1',
-        productName: `Market Research: ${query}`,
-        sourceName: 'Google Search Grounded Analysis',
-        sourceCountry: 'India / Global',
-        destinationRelevance: 'Wholesale Sourcing',
-        listedPrice: 'Not publicly available',
-        currency: 'INR',
-        moq: 'Not publicly available',
-        sourceType: 'Gemini Live Research',
-        status: 'VERIFIED LIVE SOURCE',
-        originalUrl: 'https://www.google.com',
-        snippet: textOutput,
-        retrievedAt: new Date().toISOString(),
-        analysisData: {
-          marketInfo: textOutput,
-          risks: 'Independent business verification required',
-          questions: ['What is your target order quantity?']
-        }
-      });
+      // Reality-First policy: Do not invent mock results or fake counts
+      formattedResults = [];
     }
 
     return res.json({
       success: true,
-      available: true,
+      available: formattedResults.length > 0,
       results: formattedResults
     });
 
@@ -120,22 +114,7 @@ app.post('/api/search-commerce', async (req, res) => {
     console.error('Search execution error:', err);
     return res.status(200).json({
       success: true,
-      results: [{
-        id: 'err-fallback',
-        productName: `Search Query: ${req.body?.query || 'General'}`,
-        sourceName: 'Gateway Analysis',
-        sourceCountry: 'Global',
-        destinationRelevance: 'Global',
-        listedPrice: 'Not publicly available',
-        currency: 'INR',
-        moq: 'Not publicly available',
-        sourceType: 'System Active',
-        status: 'ACTIVE',
-        originalUrl: 'https://pinexuscommerce.vercel.app',
-        snippet: `Processed successfully. Details: ${err.message}`,
-        retrievedAt: new Date().toISOString(),
-        analysisData: { marketInfo: err.message }
-      }]
+      results: []
     });
   }
 });
