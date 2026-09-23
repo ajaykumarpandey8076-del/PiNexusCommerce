@@ -1,11 +1,3 @@
-document.addEventListener('click', function(e) {
-  const target = e.target.closest('a');
-  if (target && target.href && (target.href.includes('google.com/search') || target.href.includes('NOT%20AVAILABLE'))) {
-    e.preventDefault();
-    alert('Verified source URL is not available. Redirection blocked.');
-    return false;
-  }
-}, true);
 function renderResults(results) {
   const container = document.getElementById('real-sources-container');
   if (!container) return;
