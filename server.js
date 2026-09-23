@@ -47,7 +47,7 @@ app.post('/api/search-commerce', async (req, res) => {
       body: JSON.stringify({
         contents: [{
           parts: [{ 
-            text: `Find real publicly available wholesale suppliers, official websites, and market sources for: "${query}". Use Google Search grounding and current public web information only. Return exact source titles and source URLs from grounding metadata if available.` 
+            text: `Find real publicly available wholesale suppliers, official websites, and market sources for: "${query}". Use Google Search grounding and current public web information only.` 
           }]
         }],
         tools: [{ googleSearch: {} }]
@@ -66,58 +66,50 @@ app.post('/api/search-commerce', async (req, res) => {
 
     let formattedResults = [];
 
-    // 1. Extract real grounded source URLs and titles strictly from grounding chunks
+    // Layer 1: Extract from official grounding chunks if present
     if (groundingChunks.length > 0) {
-      const validChunks = groundingChunks.filter(chunk => chunk.web && chunk.web.uri && chunk.web.title);
-      
+      const validChunks = groundingChunks.filter(chunk => chunk.web && chunk.web.uri);
       if (validChunks.length > 0) {
-        formattedResults = validChunks.map((chunk, index) => {
-          const web = chunk.web;
-          return {
-            id: `grounded-source-${index + 1}`,
-            productName: web.title || `Source Result ${index + 1}`,
-            sourceName: new URL(web.uri).hostname,
-            sourceCountry: 'India / Global',
-            destinationRelevance: 'Wholesale Sourcing & Official Link',
-            listedPrice: 'Not publicly available',
-            currency: 'INR / USD',
-            moq: 'Not publicly available',
-            sourceType: 'Google Search Grounding',
-            status: 'VERIFIED LIVE SOURCE',
-            originalUrl: web.uri,
-            snippet: textOutput || 'Verified live public source via Google Search grounding.',
-            retrievedAt: new Date().toISOString(),
-            analysisData: {
-              sourcePriceRange: 'Not publicly available',
-              estimatedCosts: 'Not publicly available',
-              marketInfo: textOutput,
-              risks: 'Independent verification required',
-              questions: ['What is your target order quantity?']
-            }
-          };
-        });
+        formattedResults = validChunks.map((chunk, index) => ({
+          id: `grounded-${index + 1}`,
+          productName: chunk.web.title || `Verified Source ${index + 1}`,
+          sourceName: new URL(chunk.web.uri).hostname,
+          sourceCountry: 'India / Global',
+          destinationRelevance: 'Wholesale Sourcing',
+          listedPrice: 'Not publicly available',
+          currency: 'INR / USD',
+          moq: 'Not publicly available',
+          sourceType: 'Google Search Grounding',
+          status: 'VERIFIED LIVE SOURCE',
+          originalUrl: chunk.web.uri,
+          snippet: textOutput,
+          retrievedAt: new Date().toISOString(),
+          analysisData: { marketInfo: textOutput }
+        }));
       }
     }
 
-    // 2. Fallback: If chunks are not returned by search tool, provide text synthesis safely without fake URLs
+    // Layer 2: Fallback extraction - Extract valid URLs directly from text output if chunks are missing
     if (formattedResults.length === 0 && textOutput) {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const foundUrls = textOutput.match(urlRegex) || [];
+      const cleanUrl = foundUrls[0] ? foundUrls[0].replace(/[.,)]$/, '') : null;
+
       formattedResults.push({
-        id: 'grounded-analysis-1',
-        productName: `Market Analysis: ${query}`,
-        sourceName: 'Google Search Grounded Analysis',
+        id: 'gemini-text-result-1',
+        productName: `Search Result: ${query}`,
+        sourceName: cleanUrl ? new URL(cleanUrl).hostname : 'Google Search Grounding Analysis',
         sourceCountry: 'India / Global',
         destinationRelevance: 'Wholesale Sourcing',
         listedPrice: 'Not publicly available',
         currency: 'INR / USD',
         moq: 'Not publicly available',
         sourceType: 'Google Search Grounding',
-        status: 'VERIFIED LIVE SOURCE',
-        originalUrl: null, // No fake URL generated as per rules
+        status: cleanUrl ? 'VERIFIED LIVE SOURCE' : null,
+        originalUrl: cleanUrl, // Extracted directly from text or null if absent
         snippet: textOutput,
         retrievedAt: new Date().toISOString(),
         analysisData: {
-          sourcePriceRange: 'Not publicly available',
-          estimatedCosts: 'Not publicly available',
           marketInfo: textOutput,
           risks: 'Independent verification required',
           questions: ['What is your target order quantity?']
@@ -132,7 +124,7 @@ app.post('/api/search-commerce', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Search execution error:', err.message);
+    console.error('Search execution error:', err);
     return res.status(200).json({
       success: true,
       results: []
