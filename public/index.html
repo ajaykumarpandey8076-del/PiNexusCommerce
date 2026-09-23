@@ -1,51 +1,95 @@
-function renderResults(results) {
-  const container = document.getElementById('real-sources-container');
-  if (!container) return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PiNexus Commerce</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 pb-20">
 
-  if (!results || results.length === 0) {
-    container.innerHTML = `
-      <div class="bg-white border border-gray-200 rounded-2xl p-6 text-center text-xs text-gray-500">
-        No relevant public information was found.
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = results.map(item => {
-    // Strictly use backend-provided sourceUrl or originalUrl, never fallback to search query
-    const validUrl = item.sourceUrl || item.originalUrl;
+  <!-- Main Content Container -->
+  <main class="max-w-md mx-auto p-4 space-y-4">
     
-    let actionButtonHtml = '';
-    if (validUrl && validUrl.startsWith('http') && !validUrl.includes('google.com/search')) {
-      // Valid grounding URL exists (e.g., https://www.tatamotors.com)
-      actionButtonHtml = `
-        <a href="${validUrl}" target="_blank" rel="noopener noreferrer" class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2 rounded-xl text-xs transition">
-          Open Original Website
-        </a>
-      `;
-    } else {
-      // If no valid URL exists, disable button cleanly without opening Google Search
-      actionButtonHtml = `
-        <button type="button" disabled class="inline-block bg-gray-200 text-gray-400 font-medium px-4 py-2 rounded-xl text-xs cursor-not-allowed">
-          Source URL: NOT AVAILABLE
-        </button>
-      `;
-    }
-
-    return `
-      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-2">
-        <div class="flex justify-between items-start">
-          <h3 class="font-bold text-sm text-gray-900">${item.productName || 'Market Source'}</h3>
-          <span class="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-semibold">${item.status || 'VERIFIED SOURCE'}</span>
-        </div>
-        <p class="text-xs text-gray-600 line-clamp-3">${item.snippet || item.sourceSnippet || ''}</p>
-        <div class="pt-2 flex items-center justify-between">
-          <span class="text-[10px] text-gray-400 truncate max-w-[200px]">${item.sourceName || (validUrl ? new URL(validUrl).hostname : 'Source Unavailable')}</span>
-          ${actionButtonHtml}
+    <!-- Home Tab -->
+    <section id="tab-home" class="space-y-4">
+      <div>
+        <h2 class="text-sm font-bold text-gray-900 mb-3 px-1">Real Public Sources & Results</h2>
+        <div id="real-sources-container" class="space-y-4">
+          <div class="bg-white border border-gray-200 rounded-2xl p-6 text-center text-xs text-gray-500">
+            No active search query yet. Type your requirement above or use voice search.
+          </div>
         </div>
       </div>
-    `;
-  }).join('');
-}
+    </section>
 
+    <!-- Discover Tab -->
+    <section id="tab-discover" class="hidden space-y-4">
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+        <h2 class="font-bold text-sm text-gray-900 mb-1">🌍 Global Market Intelligence</h2>
+        <p class="text-xs text-gray-600 mb-4">Explore cross-border public trade corridors and wholesale markets.</p>
+      </div>
+    </section>
+
+    <!-- AI Advisor Tab -->
+    <section id="tab-advisor" class="hidden space-y-4">
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+        <h2 class="font-bold text-sm text-gray-900 mb-1">🤖 AI Business Advisor Hub</h2>
+        <p class="text-xs text-gray-600 mb-4">Evaluate cross-border shipping, public comparable prices, and market estimates.</p>
+      </div>
+    </section>
+
+    <!-- Orders Tab -->
+    <section id="tab-orders" class="hidden space-y-4">
+      <div class="space-y-3">
+        <h2 class="font-bold text-sm text-gray-900 px-1">Saved Inquiries & History</h2>
+        <div id="orders-content-container">
+          <div class="bg-white border border-gray-200 rounded-2xl p-6 text-center shadow-sm">
+            <span class="text-2xl mb-2 block">📦</span>
+            <h3 class="font-bold text-sm text-gray-900 mb-1">No Saved Inquiries</h3>
+            <p class="text-xs text-gray-600">Your research and source inquiries will appear here.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Profile Tab -->
+    <section id="tab-profile" class="hidden space-y-4">
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+        <h2 class="font-bold text-sm text-gray-900 mb-1">👤 Global Commerce Profile</h2>
+        <p class="text-xs text-gray-600 mb-3">Manage your international trade role and preferences.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Fixed Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 py-2 shadow-lg">
+    <div class="max-w-md mx-auto flex justify-around items-center text-center">
+      <button type="button" data-tab="home" class="nav-item flex flex-col items-center text-purple-600 active" id="nav-btn-home">
+        <span class="text-lg">🏠</span>
+        <span class="text-[10px] font-semibold mt-0.5">Home</span>
+      </button>
+      <button type="button" data-tab="discover" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-discover">
+        <span class="text-lg">🌍</span>
+        <span class="text-[10px] font-semibold mt-0.5">Discover</span>
+      </button>
+      <button type="button" data-tab="advisor" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-advisor">
+        <span class="text-lg">🤖</span>
+        <span class="text-[10px] font-semibold mt-0.5">AI Advisor</span>
+      </button>
+      <button type="button" data-tab="orders" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-orders">
+        <span class="text-lg">📦</span>
+        <span class="text-[10px] font-semibold mt-0.5">Inquiries</span>
+      </button>
+      <button type="button" data-tab="profile" class="nav-item flex flex-col items-center text-gray-600" id="nav-btn-profile">
+        <span class="text-lg">👤</span>
+        <span class="text-[10px] font-semibold mt-0.5">Profile</span>
+      </button>
+    </div>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
 
