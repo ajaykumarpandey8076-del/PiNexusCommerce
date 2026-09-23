@@ -8,7 +8,7 @@
 </head>
 <body class="bg-gray-50 text-gray-800 pb-20">
 
-  <!-- Header Section Restored -->
+  <!-- Header Section with Complete Role Selector Restored -->
   <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-md mx-auto p-4 flex justify-between items-center">
       <div>
@@ -18,8 +18,14 @@
       <div class="flex items-center gap-2">
         <select id="role-selector" class="bg-gray-50 border border-gray-300 rounded-lg px-2 py-1 text-xs font-medium text-gray-700 focus:outline-none focus:border-purple-600">
           <option value="buyer">Global Buyer</option>
-          <option value="supplier">Wholesale Supplier</option>
-          <option value="logistics">Logistics Partner</option>
+          <option value="wholesale-buyer">Wholesale Buyer</option>
+          <option value="reseller">Reseller</option>
+          <option value="seller">Seller</option>
+          <option value="supplier">Supplier</option>
+          <option value="manufacturer">Manufacturer</option>
+          <option value="buyer-seller">Buyer + Seller</option>
+          <option value="international-trader">International Trader</option>
+          <option value="ai-advisor">AI Commerce Advisor</option>
         </select>
       </div>
     </div>
@@ -30,7 +36,7 @@
     
     <!-- Home Tab -->
     <section id="tab-home" class="space-y-4">
-      <!-- AI Commerce Research Engine & Search Section Restored -->
+      <!-- AI Commerce Research Engine & Search Section -->
       <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-3">
         <div class="flex justify-between items-center">
           <h2 class="font-bold text-sm text-gray-900">AI Commerce Research Engine</h2>
@@ -55,21 +61,21 @@
 
     <!-- Discover Tab -->
     <section id="tab-discover" class="hidden space-y-4">
-      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-        <h2 class="font-bold text-sm text-gray-900 mb-1">🌍 Global Market Intelligence</h2>
-        <p class="text-xs text-gray-600 mb-4">Explore cross-border public trade corridors and wholesale markets.</p>
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-2">
+        <h2 class="font-bold text-sm text-gray-900">🌍 Global Market Intelligence</h2>
+        <p class="text-xs text-gray-600">Explore cross-border public trade corridors, verified manufacturer directories, and international wholesale markets.</p>
       </div>
     </section>
 
     <!-- AI Advisor Tab -->
     <section id="tab-advisor" class="hidden space-y-4">
-      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-        <h2 class="font-bold text-sm text-gray-900 mb-1">🤖 AI Business Advisor Hub</h2>
-        <p class="text-xs text-gray-600 mb-4">Evaluate cross-border shipping, public comparable prices, and market estimates.</p>
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-2">
+        <h2 class="font-bold text-sm text-gray-900">🤖 AI Business Advisor Hub</h2>
+        <p class="text-xs text-gray-600">Evaluate cross-border shipping logistics, public comparable wholesale prices, and real-time market estimates.</p>
       </div>
     </section>
 
-    <!-- Orders Tab -->
+    <!-- Orders / Inquiries Tab -->
     <section id="tab-orders" class="hidden space-y-4">
       <div class="space-y-3">
         <h2 class="font-bold text-sm text-gray-900 px-1">Saved Inquiries & History</h2>
@@ -85,15 +91,15 @@
 
     <!-- Profile Tab -->
     <section id="tab-profile" class="hidden space-y-4">
-      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-        <h2 class="font-bold text-sm text-gray-900 mb-1">👤 Global Commerce Profile</h2>
-        <p class="text-xs text-gray-600 mb-3">Manage your international trade role and preferences.</p>
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-2">
+        <h2 class="font-bold text-sm text-gray-900">👤 Global Commerce Profile</h2>
+        <p class="text-xs text-gray-600">Manage your international trade role, verification status, and gateway preferences.</p>
       </div>
     </section>
 
   </main>
 
-  <!-- Fixed Bottom Navigation Bar -->
+  <!-- Fixed Bottom Navigation Bar Restored -->
   <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 py-2 shadow-lg">
     <div class="max-w-md mx-auto flex justify-around items-center text-center">
       <button type="button" data-tab="home" class="nav-item flex flex-col items-center text-purple-600 active" id="nav-btn-home">
