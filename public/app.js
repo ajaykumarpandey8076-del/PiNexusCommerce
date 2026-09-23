@@ -1,12 +1,3 @@
-document.addEventListener('click', function(e) {
-  const target = e.target.closest('a');
-  if (target && target.href && (target.href.includes('google.com/search') || target.href.includes('NOT%20AVAILABLE'))) {
-    e.preventDefault();
-    alert('Verified source URL is not available. Redirection blocked.');
-    return false;
-  }
-}, true);
-
 function renderResults(results) {
   const container = document.getElementById('real-sources-container');
   if (!container) return;
@@ -21,16 +12,19 @@ function renderResults(results) {
   }
 
   container.innerHTML = results.map(item => {
-    const validUrl = item.sourceUrl || item.originalUrl;
+    // Check if sourceUrl exists and is a valid http/https link
+    const validUrl = (item.sourceUrl && item.sourceUrl.startsWith('http')) ? item.sourceUrl : null;
     
     let actionButtonHtml = '';
-    if (validUrl && validUrl.startsWith('http') && !validUrl.includes('google.com/search')) {
+    if (validUrl && !validUrl.includes('google.com/search')) {
+      // Valid real website link exists
       actionButtonHtml = `
         <a href="${validUrl}" target="_blank" rel="noopener noreferrer" class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2 rounded-xl text-xs transition">
           Open Original Website
         </a>
       `;
     } else {
+      // If no valid URL, render a non-clickable button so it can NEVER redirect to Google Search
       actionButtonHtml = `
         <button type="button" disabled class="inline-block bg-gray-200 text-gray-400 font-medium px-4 py-2 rounded-xl text-xs cursor-not-allowed">
           Source URL: NOT AVAILABLE
