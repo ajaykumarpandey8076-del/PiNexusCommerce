@@ -47,7 +47,7 @@ app.post('/api/search-commerce', async (req, res) => {
       body: JSON.stringify({
         contents: [{
           parts: [{ 
-            text: `Find real publicly available wholesale suppliers, market data, and business sources for: "${query}". Use Google Search grounding and current public web information only.` 
+            text: `Find real publicly available wholesale suppliers, manufacturers, products, prices, MOQ, and source URLs for the international commerce query: "${query}". Use Google Search grounding only. Do not invent or estimate anything. If any fact or price is not publicly available, state "Not publicly available".` 
           }]
         }],
         tools: [{ googleSearch: {} }]
@@ -59,58 +59,50 @@ app.post('/api/search-commerce', async (req, res) => {
 
     const data = await apiResponse.json();
     const candidate = data.candidates?.[0] || {};
-    const textOutput = candidate.content?.parts?.[0]?.text || `Market analysis for: ${query}`;
+    const textOutput = candidate.content?.parts?.[0]?.text || '';
     
+    // Extract Google Search grounding metadata and chunks
     const groundingMetadata = candidate.groundingMetadata || {};
     const groundingChunks = groundingMetadata.groundingChunks || [];
 
     let formattedResults = [];
 
-    // 1. Extract valid grounding web sources if present
+    // Generic extraction of real web sources from grounding chunks
     if (groundingChunks.length > 0) {
-      const validChunks = groundingChunks.filter(chunk => chunk.web && chunk.web.uri);
+      const validChunks = groundingChunks.filter(chunk => chunk.web && chunk.web.uri && chunk.web.title);
+      
       if (validChunks.length > 0) {
-        formattedResults = validChunks.map((chunk, index) => ({
-          id: `grounded-${index + 1}`,
-          productName: chunk.web.title || `Verified Source ${index + 1}`,
-          sourceName: new URL(chunk.web.uri).hostname,
-          sourceCountry: 'India / Global',
-          destinationRelevance: 'Wholesale Sourcing',
-          listedPrice: 'Not publicly available',
-          currency: 'INR',
-          moq: 'Not publicly available',
-          sourceType: 'Google Search Grounding',
-          status: 'VERIFIED LIVE SOURCE',
-          originalUrl: chunk.web.uri,
-          snippet: textOutput,
-          retrievedAt: new Date().toISOString(),
-          analysisData: { marketInfo: textOutput }
-        }));
+        formattedResults = validChunks.map((chunk, index) => {
+          const web = chunk.web;
+          return {
+            id: `grounded-result-${index + 1}`,
+            productName: web.title,
+            sourceName: new URL(web.uri).hostname,
+            sourceCountry: 'India / Global',
+            destinationRelevance: 'International Wholesale Sourcing',
+            listedPrice: 'Not publicly available',
+            currency: 'INR / USD',
+            moq: 'Not publicly available',
+            sourceType: 'Google Search Grounding',
+            status: 'VERIFIED LIVE SOURCE', // Strict: Only populated when real web URI exists
+            originalUrl: web.uri,
+            snippet: textOutput || 'Verified live public source via Google Search grounding.',
+            retrievedAt: new Date().toISOString(),
+            analysisData: {
+              sourcePriceRange: 'Not publicly available',
+              estimatedCosts: 'Not publicly available',
+              marketInfo: textOutput,
+              risks: 'Independent business verification required',
+              questions: ['What is your target order quantity?']
+            }
+          };
+        });
       }
     }
 
-    // 2. Fallback to Gemini live search text output if chunks array is empty
-    if (formattedResults.length === 0 && textOutput) {
-      formattedResults.push({
-        id: 'gemini-grounded-analysis',
-        productName: `Market Research & Analysis: ${query}`,
-        sourceName: 'Google Search Grounding',
-        sourceCountry: 'India / Global',
-        destinationRelevance: 'Wholesale Sourcing',
-        listedPrice: 'Not publicly available',
-        currency: 'INR',
-        moq: 'Not publicly available',
-        sourceType: 'Gemini Live Research',
-        status: 'VERIFIED LIVE SOURCE',
-        originalUrl: 'https://www.google.com',
-        snippet: textOutput,
-        retrievedAt: new Date().toISOString(),
-        analysisData: {
-          marketInfo: textOutput,
-          risks: 'Independent business verification required',
-          questions: ['What is your target order quantity?']
-        }
-      });
+    // Reality-First Policy: Do not fabricate fake results or fallback placeholder URLs
+    if (formattedResults.length === 0) {
+      formattedResults = [];
     }
 
     return res.json({
@@ -135,4 +127,3 @@ if (require.main === module) {
 }
 
 module.exports = app;
-
