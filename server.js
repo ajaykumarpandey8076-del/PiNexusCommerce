@@ -72,4 +72,6 @@ app.post('/api/search', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`PiNexusCommerce Server running on port ${PORT}`);
 });
+module.exports = app;
+
 
