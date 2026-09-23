@@ -8,7 +8,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/search', (req, res) => {
     const { query } = req.body;
-    res.json({ result: "Live search is connected successfully for: " + query });
+    res.json({ result: "Search results for: " + (query || "Pi Network") });
 });
 
 app.get('/', (req, res) => {
