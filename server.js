@@ -1,19 +1,31 @@
-app.post('/api/search-commerce', async (req, res) => {
+const express = require('express');
+const path = require('path');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.post('/api/search-commerce', (req, res) => {
     try {
         const { query } = req.body;
         
-        // Agar query nahi aayi
         if (!query) {
             return res.status(400).json({ error: "Search query is required." });
         }
 
-        // Aapka existing search/Gemini logic yahan rahega, 
-        // aur result ko hamesha 'result' key ke andar bhejein:
-        res.json({ result: "Results for: " + query }); // Apne actual Gemini/Grounding response se replace karein
-        
+        res.json({ result: "Live research results for: " + query });
     } catch (error) {
         console.error("Search error:", error);
-        res.status(500).json({ error: error.message || "Live research is temporarily unavailable." });
+        res.status(500).json({ error: "Live research is temporarily unavailable." });
     }
+});
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
 
