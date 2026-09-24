@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+Document.addEventListener('DOMContentLoaded', () => {
   const searchForm = document.getElementById('search-form');
   const searchInput = document.getElementById('search-input');
   const container = document.getElementById('real-sources-container');
@@ -23,17 +23,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const data = await res.json();
 
-        if (!data.success) {
-          container.innerHTML = `<div class="bg-white border border-red-200 rounded-2xl p-4 text-center text-xs text-red-600">${data.error}</div>`;
+        // Safe parsing logic to prevent "undefined" or crashes
+        let sourcesList = [];
+        if (data && data.sources && Array.isArray(data.sources)) {
+          sourcesList = data.sources;
+        } else if (data && data.result) {
+          // Fallback agar result string ya object ki tarah aaye
+          sourcesList = [{
+            title: "Search Result",
+            snippet: typeof data.result === 'string' ? data.result : JSON.stringify(data.result),
+            url: ""
+          }];
+        }
+
+        if (data && data.success === false) {
+          container.innerHTML = `<div class="bg-white border border-red-200 rounded-2xl p-4 text-center text-xs text-red-600">${data.error || "An error occurred."}</div>`;
           return;
         }
 
-        if (!data.sources || data.sources.length === 0) {
+        if (sourcesList.length === 0) {
           container.innerHTML = `<div class="bg-white border border-gray-200 rounded-2xl p-6 text-center text-xs text-gray-500">Live search completed, but no usable public source was returned.</div>`;
           return;
         }
 
-        container.innerHTML = data.sources.map(source => {
+        container.innerHTML = sourcesList.map(source => {
           const isValidUrl = source.url && source.url.startsWith('http');
           const badgeText = isValidUrl ? "VERIFIED LIVE SOURCE" : "Google Search Grounding — Source unavailable";
           const badgeClass = isValidUrl ? "bg-purple-50 text-purple-700" : "bg-gray-100 text-gray-500";
@@ -48,15 +61,24 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>
           `;
 
+          let hostnameDisplay = 'Not publicly available';
+          if (isValidUrl) {
+            try {
+              hostnameDisplay = new URL(source.url).hostname;
+            } catch (err) {
+              hostnameDisplay = source.url;
+            }
+          }
+
           return `
             <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-3">
               <div class="flex justify-between items-start gap-2">
-                <h3 class="font-bold text-sm text-gray-900">${source.title}</h3>
+                <h3 class="font-bold text-sm text-gray-900">${source.title || "Result"}</h3>
                 <span class="text-[10px] ${badgeClass} px-2 py-0.5 rounded-full font-semibold whitespace-nowrap">${badgeText}</span>
               </div>
-              <p class="text-xs text-gray-600 leading-relaxed">${source.snippet}</p>
+              <p class="text-xs text-gray-600 leading-relaxed">${source.snippet || "No details available."}</p>
               <div class="pt-2 flex items-center justify-between border-t border-gray-100">
-                <span class="text-[10px] text-gray-400 truncate max-w-[200px]">${isValidUrl ? new URL(source.url).hostname : 'Not publicly available'}</span>
+                <span class="text-[10px] text-gray-400 truncate max-w-[200px]">${hostnameDisplay}</span>
                 ${actionBtn}
               </div>
             </div>
